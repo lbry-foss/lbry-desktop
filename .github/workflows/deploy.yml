@@ -60,8 +60,8 @@ jobs:
           CSC_LINK: https://s3.amazonaws.com/files.lbry.io/cert/osx-csc-2021-2022.p12
 
           # UI
-          MATOMO_URL: https://analytics.lbry.com/
-          MATOMO_ID: 4
+          MATOMO_URL: # No tracking
+          MATOMO_ID: 
           WELCOME_VERSION: 1.0
           DOMAIN: lbry.tv
           URL: https://lbry.tv

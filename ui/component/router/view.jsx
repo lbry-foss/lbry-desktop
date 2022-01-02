@@ -174,7 +174,7 @@ function AppRouter(props: Props) {
       if (process.env.NODE_ENV !== 'production') {
         return uri || pathname || title;
       }
-      return __(title) || 'LBRY';
+      return __(title) || 'LBRY - Community Edition';
     };
 
     if (uri) {
