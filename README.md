@@ -1,6 +1,6 @@
 <img width="40%" src="https://miro.medium.com/max/5198/1*bTVuL2THG_0mpwmE-n7Ezg.png" />
 
-# LBRY App
+# LBRY App - Community Edition
 
 This repo contains the UI code that powers the official LBRY desktop app. The LBRY app is a graphical browser for the decentralized content marketplace provided by the
 [LBRY](https://lbry.com) protocol. It is essentially the
@@ -115,4 +115,4 @@ New Releases are signed by [Jessop Breth](https://keybase.io/jessopb/key.asc).
 
 ## Contact
 
-The primary contact for this project is [@jessopb](https://github.com/jessopb).
+The primary contact for this project is [@danger89](https://github.com/danger89).
