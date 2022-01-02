@@ -330,6 +330,14 @@ const Header = (props: Props) => {
                           {__('Creator Analytics')}
                         </MenuItem>
                       )}
+                      <MenuItem className="menu__link" onSelect={() => history.push(`/$/${PAGES.REWARDS}`)}>
+                        <Icon aria-hidden icon={ICONS.REWARDS} />
+                        {__('Rewards')}
+                      </MenuItem>
+                      <MenuItem className="menu__link" onSelect={() => history.push(`/$/${PAGES.INVITE}`)}>
+                        <Icon aria-hidden icon={ICONS.INVITE} />
+                        {__('Invites')}
+                      </MenuItem>
                       {authenticated ? (
                         <MenuItem onSelect={IS_WEB ? signOut : openSignOutModal}>
                           <div className="menu__link">
