@@ -374,7 +374,7 @@ ipcMain.on('version-info-requested', () => {
     const req = https.get(
       {
         hostname: 'api.github.com',
-        path: '/repos/lbryio/lbry-desktop/releases/latest',
+        path: '/repos/lbry-foss/lbry-desktop/releases/latest',
         headers: { 'user-agent': `LBRY/${localVersion}` },
       },
       res => {
