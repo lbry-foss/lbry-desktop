@@ -51,13 +51,15 @@ jobs:
           yarn build
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          NOTARIZATION_USERNAME: ${{ secrets.NOTARIZATION_USERNAME }}
-          NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
-          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
-          CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          #NOTARIZATION_USERNAME: ${{ secrets.NOTARIZATION_USERNAME }}
+          #NOTARIZATION_PASSWORD: ${{ secrets.NOTARIZATION_PASSWORD }}
+          #WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          #CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
-          WIN_CSC_LINK: https://raw.githubusercontent.com/lbryio/lbry-desktop/master/build/cert-2021-2022.pfx
-          CSC_LINK: https://s3.amazonaws.com/files.lbry.io/cert/osx-csc-2021-2022.p12
+          # Can't be signed by official lbry inc.
+          #WIN_CSC_LINK: https://raw.githubusercontent.com/lbryio/lbry-desktop/master/build/cert-2021-2022.pfx
+          #CSC_LINK: https://s3.amazonaws.com/files.lbry.io/cert/osx-csc-2021-2022.p12
 
           # UI
           MATOMO_URL: # No tracking
