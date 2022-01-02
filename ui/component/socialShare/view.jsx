@@ -22,6 +22,8 @@ type Props = {
   claim: StreamClaim,
   title: ?string,
   webShareable: boolean,
+  referralCode: string,
+  user: any,
   position: number,
   collectionId?: number,
   customShareUrlEnabled: boolean,
@@ -29,7 +31,17 @@ type Props = {
 };
 
 function SocialShare(props: Props) {
-  const { claim, title, webShareable, position, collectionId, customShareUrlEnabled, customShareUrl } = props;
+  const {
+    claim,
+    title,
+    referralCode,
+    user,
+    webShareable,
+    position,
+    collectionId,
+    customShareUrlEnabled,
+    customShareUrl,
+  } = props;
   const [showEmbed, setShowEmbed] = React.useState(false);
   const [includeCollectionId, setIncludeCollectionId] = React.useState(Boolean(collectionId)); // unless it *is* a collection?
   const [showClaimLinks, setShowClaimLinks] = React.useState(false);
@@ -50,6 +62,7 @@ function SocialShare(props: Props) {
   const isVideo = isStream && claim.value.stream_type === 'video';
   const isAudio = isStream && claim.value.stream_type === 'audio';
   const showStartAt = isVideo || isAudio;
+  const rewardsApproved = user && user.is_reward_approved;
   const lbryUrl: string = generateLbryContentUrl(canonicalUrl, permanentUrl);
   const lbryWebUrl: string = generateLbryWebUrl(lbryUrl);
   const includedCollectionId = collectionId && includeCollectionId ? collectionId : null;
@@ -63,8 +76,8 @@ function SocialShare(props: Props) {
   const shareUrl: string = generateShareUrl(
     shareDomain,
     lbryUrl,
-    null,
-    null,
+    referralCode,
+    rewardsApproved,
     includeStartTime,
     startTimeSeconds,
     includedCollectionId
@@ -201,6 +214,7 @@ function SocialShare(props: Props) {
           claim={claim}
           includeStartTime={includeStartTime}
           startTime={startTimeSeconds}
+          referralCode={referralCode}
         />
       )}
       {showClaimLinks && (
