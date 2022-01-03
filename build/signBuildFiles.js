@@ -119,7 +119,7 @@ function downloadAssets() {
   console.log('Downloading release assets...');
   octokit.repos
     .getReleaseByTag({
-      owner: 'lbryio',
+      owner: 'lbry-foss',
       repo: 'lbry-desktop',
       tag: versionToSign,
     })
@@ -127,7 +127,7 @@ function downloadAssets() {
       const release_id = data.id;
 
       return octokit.repos.listReleases({
-        owner: 'lbryio',
+        owner: 'lbry-foss',
         repo: 'lbry-desktop',
         release_id,
       });
