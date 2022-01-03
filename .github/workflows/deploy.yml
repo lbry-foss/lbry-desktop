@@ -56,10 +56,6 @@ jobs:
           #WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
           #CSC_KEY_PASSWORD: ${{ secrets.CSC_KEY_PASSWORD }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
-          ARTIFACTS_BUCKET: ${{ secrets.ARTIFACTS_BUCKET }}
-          ARTIFACTS_KEY: ${{ secrets.ARTIFACTS_KEY }}
-          ARTIFACTS_SECRET: ${{ secrets.ARTIFACTS_SECRET }}
-          ARTIFACTS_REGION: ${{ secrets.ARTIFACTS_REGION }}
 
           # Can't be signed by official lbry inc.
           #WIN_CSC_LINK: https://raw.githubusercontent.com/lbryio/lbry-desktop/master/build/cert-2021-2022.pfx
