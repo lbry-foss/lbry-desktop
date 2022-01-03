@@ -1,6 +1,6 @@
 {
   "appId": "io.lbry.LBRY",
-  "productName": "LBRY-CE",
+  "productName": "LBRY",
   "directories": {
     "output": "dist/electron"
   },
