@@ -25,7 +25,11 @@ const LastReleaseChanges = (props: Props) => {
       <I18nMessage
         tokens={{
           release_notes: (
-            <Button button="link" label={__('release notes')} href="https://github.com/lbryio/lbry-desktop/releases" />
+            <Button
+              button="link"
+              label={__('release notes')}
+              href="https://github.com/lbry-foss/lbry-desktop/releases"
+            />
           ),
         }}
       >
