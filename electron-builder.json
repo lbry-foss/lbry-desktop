@@ -1,6 +1,6 @@
 {
   "appId": "io.lbry.LBRY",
-  "productName": "LBRY",
+  "productName": "LBRY-CE",
   "directories": {
     "output": "dist/electron"
   },
@@ -94,5 +94,5 @@
     ]
   },
   "artifactName": "${productName}_${version}.${ext}",
-  "afterSign": "./build/afterSignHook.js"
+  "//": { "afterSign": "./build/afterSignHook.js" }
 }
