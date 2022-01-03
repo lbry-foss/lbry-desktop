@@ -15,8 +15,8 @@
     "url": "https://github.com/lbryio/lbry-desktop"
   },
   "author": {
-    "name": "LBRY Inc.",
-    "email": "hello@lbry.com"
+    "name": "LBRY Community",
+    "email": "lbry@melroy.org"
   },
   "main": "./dist/electron/main.js",
   "scripts": {
