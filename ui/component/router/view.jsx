@@ -38,6 +38,8 @@ import DiscoverPage from 'page/discover';
 import FileListPublished from 'page/fileListPublished';
 import FourOhFourPage from 'page/fourOhFour';
 import HelpPage from 'page/help';
+import InvitePage from 'page/invite';
+import InvitedPage from 'page/invited';
 import LibraryPage from 'page/library';
 import ListBlockedPage from 'page/listBlocked';
 import ListsPage from 'page/lists';
@@ -49,6 +51,8 @@ import PublishPage from 'page/publish';
 import ReportContentPage from 'page/reportContent';
 import ReportPage from 'page/report';
 import RepostNew from 'page/repost';
+import RewardsPage from 'page/rewards';
+import RewardsVerifyPage from 'page/rewardsVerify';
 import SearchPage from 'page/search';
 
 import SettingsCreatorPage from 'page/settingsCreator';
@@ -62,6 +66,7 @@ import TagsFollowingPage from 'page/tagsFollowing';
 import TopPage from 'page/top';
 import UpdatePasswordPage from 'page/passwordUpdate';
 import Welcome from 'page/welcome';
+import YoutubeSyncPage from 'page/youtubeSync';
 
 // Tell the browser we are handling scroll restoration
 if ('scrollRestoration' in history) {
@@ -169,7 +174,7 @@ function AppRouter(props: Props) {
       if (process.env.NODE_ENV !== 'production') {
         return uri || pathname || title;
       }
-      return __(title) || 'LBRY';
+      return __(title) || 'LBRY - Community Edition';
     };
 
     if (uri) {
@@ -254,9 +259,11 @@ function AppRouter(props: Props) {
       <Route path={`/$/${PAGES.SEARCH}`} exact component={SearchPage} />
       <Route path={`/$/${PAGES.TOP}`} exact component={TopPage} />
       <Route path={`/$/${PAGES.SETTINGS}`} exact component={SettingsPage} />
+      <Route path={`/$/${PAGES.INVITE}/:referrer`} exact component={InvitedPage} />
       <Route path={`/$/${PAGES.REPORT_CONTENT}`} exact component={ReportContentPage} />
       <Route {...props} path={`/$/${PAGES.LIST}/:collectionId`} component={CollectionPage} />
 
+      <PrivateRoute {...props} exact path={`/$/${PAGES.YOUTUBE_SYNC}`} component={YoutubeSyncPage} />
       <PrivateRoute {...props} exact path={`/$/${PAGES.TAGS_FOLLOWING}`} component={TagsFollowingPage} />
       <PrivateRoute
         {...props}
@@ -272,12 +279,15 @@ function AppRouter(props: Props) {
         path={`/$/${PAGES.CHANNELS_FOLLOWING_DISCOVER}`}
         component={ChannelsFollowingDiscoverPage}
       />
+      <PrivateRoute {...props} path={`/$/${PAGES.INVITE}`} component={InvitePage} />
       <PrivateRoute {...props} path={`/$/${PAGES.CHANNEL_NEW}`} component={ChannelNew} />
       <PrivateRoute {...props} path={`/$/${PAGES.REPOST_NEW}`} component={RepostNew} />
       <PrivateRoute {...props} path={`/$/${PAGES.UPLOADS}`} component={FileListPublished} />
       <PrivateRoute {...props} path={`/$/${PAGES.CREATOR_DASHBOARD}`} component={CreatorDashboard} />
       <PrivateRoute {...props} path={`/$/${PAGES.UPLOAD}`} component={PublishPage} />
       <PrivateRoute {...props} path={`/$/${PAGES.REPORT}`} component={ReportPage} />
+      <PrivateRoute {...props} path={`/$/${PAGES.REWARDS}`} exact component={RewardsPage} />
+      <PrivateRoute {...props} path={`/$/${PAGES.REWARDS_VERIFY}`} component={RewardsVerifyPage} />
       <PrivateRoute {...props} path={`/$/${PAGES.LIBRARY}`} component={LibraryPage} />
       <PrivateRoute {...props} path={`/$/${PAGES.LISTS}`} component={ListsPage} />
       <PrivateRoute {...props} path={`/$/${PAGES.PLAYLISTS}`} component={PlaylistsPage} />

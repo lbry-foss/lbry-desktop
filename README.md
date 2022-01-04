@@ -1,20 +1,34 @@
 <img width="40%" src="https://miro.medium.com/max/5198/1*bTVuL2THG_0mpwmE-n7Ezg.png" />
 
-# LBRY App
+# LBRY App - Community Edition
 
 This repo contains the UI code that powers the official LBRY desktop app. The LBRY app is a graphical browser for the decentralized content marketplace provided by the
 [LBRY](https://lbry.com) protocol. It is essentially the
 [lbry daemon](https://github.com/lbryio/lbry) bundled with a UI using
 [Electron](https://electron.atom.io/).
 
- <a href="https://github.com/lbryio/lbry-desktop/blob/master/LICENSE" title="MIT licensed">
+## Community Edition
+
+This is the **Community Edition** (CE) of the LBRY desktop app. This LBRY CE version includes *additional improvements* and *changes*, including but not limited by:
+
+* Adding **Rewards** feature back;
+* **Disable Matomo Analytics**, meaning **no telemetry / tracking**;
+* Adding **Referral** feature back;
+* Adding **YouTube Sync** (partially) back;
+* Enable **file reactions**
+* Enable **creator reactions**
+* Enable no source claims
+
+**The LBRY Community Edition binaries are licensed under the [MIT license](https://github.com/lbry-foss/lbry-desktop/blob/master/LICENSE). With additional features. Telemetry is disabled.**
+
+ <a href="https://github.com/lbry-foss/lbry-desktop/blob/master/LICENSE" title="MIT licensed">
    <img alt="npm" src="https://img.shields.io/dub/l/vibe-d.svg?style=flat">
  </a>
- <a href="https://GitHub.com/lbryio/lbry-desktop/releases/" title="GitHub release">
-   <img src="https://img.shields.io/github/release/lbryio/lbry-desktop.svg"/>
+ <a href="https://GitHub.com/lbry-foss/lbry-desktop/releases/" title="GitHub release">
+   <img src="https://img.shields.io/github/release/lbry-foss/lbry-desktop.svg"/>
  </a>
- <a href="https://travis-ci.org/lbryio/lbry-desktop">
-   <img src="https://travis-ci.org/lbryio/lbry-desktop.svg?branch=master" alt="Build Status"  />
+ <a href="https://github.com/lbry-foss/lbry-desktop/actions/workflows/deploy.yml?query=branch%3Afoss">
+   <img src="https://github.com/lbry-foss/lbry-desktop/actions/workflows/deploy.yml/badge.svg?branch=foss" alt="Build Status"  />
  </a>
  <a href="https://chat.lbry.com">
    <img alt="GitHub contributors" src="https://img.shields.io/discord/362322208485277697.svg?logo=discord" alt="chat on Discord">
@@ -43,19 +57,16 @@ This repo contains the UI code that powers the official LBRY desktop app. The LB
 
 ## Install
 
-[![Windows](https://img.shields.io/badge/Windows-Install-blue)](https://lbry.com/get/lbry.exe)
-[![Linux](https://img.shields.io/badge/Linux-Install-blue)](https://lbry.com/get/lbry.deb)
-[![MacOS](https://img.shields.io/badge/MacOS-Install-blue)](https://lbry.com/get/lbry.dmg)
+[![Windows](https://img.shields.io/badge/Windows-Install-blue)](https://github.com/lbry-foss/lbry-desktop/releases/latest)
+[![Linux](https://img.shields.io/badge/Linux-Install-blue)](https://github.com/lbry-foss/lbry-desktop/releases/latest)
+[![MacOS](https://img.shields.io/badge/MacOS-Install-blue)](https://github.com/lbry-foss/lbry-desktop/releases/latest)
 
 We provide installers for Windows, macOS (v10.12.4, Sierra, or greater), and Debian-based Linux. See community maintained builds section for alternative Linux installations.
 
-|                       | Windows                                       | macOS                                         | Linux                                         |
-| --------------------- | --------------------------------------------- | --------------------------------------------- | --------------------------------------------- |
-| Latest Stable Release | [Download](https://lbry.com/get/lbry.exe)     | [Download](https://lbry.com/get/lbry.dmg)     | [Download](https://lbry.com/get/lbry.deb)     |
-| Latest Pre-release    | [Download](https://lbry.com/get/lbry.pre.exe) | [Download](https://lbry.com/get/lbry.pre.dmg) | [Download](https://lbry.com/get/lbry.pre.deb) |
+Download **Community Edition** from: 
 
-Our [releases page](https://github.com/lbryio/lbry-desktop/releases) also contains the latest
-release, pre-releases, and past builds.
+* [Our releases page](https://github.com/lbry-foss/lbry-desktop/releases)
+
 _Note: If the deb fails to install using the Ubuntu Software Center, install manually via `sudo dpkg -i <path to deb>`. You'll need to run `sudo apt-get install -f` if this is the first time installing it to install dependencies_
 
 To install from source or make changes to the application, continue to the next section below.
@@ -63,10 +74,7 @@ To install from source or make changes to the application, continue to the next 
 **Community maintained** builds for Arch Linux and Flatpak are available, see below. These installs will need to be updated manually as the in-app update process only supports Debian installs at this time.
 _Note: If coming from a deb install, the directory structure is different and you'll need to [migrate data](https://lbry.com/faq/backup-data)._
 
-|                | Flatpak                                                           | Arch                                                                                      | Nixpkgs                                                                            | ARM/ARM64                                   |
-| -------------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | ------------------------------------------- |
-| Latest Release | [FlatHub Page](https://flathub.org/apps/details/io.lbry.lbry-app) | [AUR Package](https://aur.archlinux.org/packages/lbry-app-bin/)                           | [Nixpkgs](https://search.nixos.org/packages?channel=unstable&show=lbry&query=lbry) | [Build Guide](https://lbry.tv/@LBRYarm:5)   |
-| Maintainers    | [@kcSeb](https://keybase.io/kcseb)                                | [@kcSeb](https://keybase.io/kcseb)                                                        | [@Enderger](https://github.com/enderger)                                           | [@Madiator2011](https://github.com/kodxana) |
+*TODO*
 
 ## Usage
 
@@ -82,7 +90,7 @@ You can run the web version (lbry.tv), the electron app, or both at the same tim
 - [Node.js](https://nodejs.org/en/download/) (v14 required)
 - [Yarn](https://yarnpkg.com/en/docs/install)
 
-1. Clone (or [fork](https://help.github.com/articles/fork-a-repo/)) this repository: `git clone https://github.com/lbryio/lbry-desktop`
+1. Clone (or [fork](https://help.github.com/articles/fork-a-repo/)) this repository: `git clone https://github.com/lbry-foss/lbry-desktop`
 2. Change directory into the cloned repository: `cd lbry-desktop`
 3. Install the dependencies: `yarn`
 
@@ -100,9 +108,9 @@ If you _really_ think something might have gone wrong, you can force your repo t
 
 ## Contributing
 
-We :heart: contributions from everyone and contributions to this project are encouraged, and compensated. We welcome [bug reports](https://github.com/lbryio/lbry-desktop/issues/), [bug fixes](https://github.com/lbryio/lbry-desktop/pulls) and feedback is always appreciated. For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).
+We :heart: contributions from everyone and contributions to this project are encouraged, and compensated. We welcome [bug reports](https://github.com/lbry-foss/lbry-desktop/issues/), [bug fixes](https://github.com/lbry-foss/lbry-desktop/pulls) and feedback is always appreciated. For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/lbryio/lbry-desktop/issues) [![GitHub contributors](https://img.shields.io/github/contributors/lbryio/lbry-desktop.svg)](https://GitHub.com/lbryio/lbry-desktop/graphs/contributors/)
+## [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/lbry-foss/lbry-desktop/issues) [![GitHub contributors](https://img.shields.io/github/contributors/lbry-foss/lbry-desktop.svg)](https://GitHub.com/lbry-foss/lbry-desktop/graphs/contributors/)
 
 ## License
 
@@ -115,4 +123,4 @@ New Releases are signed by [Jessop Breth](https://keybase.io/jessopb/key.asc).
 
 ## Contact
 
-The primary contact for this project is [@jessopb](https://github.com/jessopb).
+The primary contact for this project is [@danger89](https://github.com/danger89).

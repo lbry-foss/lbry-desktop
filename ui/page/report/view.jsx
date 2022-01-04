@@ -62,7 +62,7 @@ class ReportPage extends React.Component {
                   name="message"
                   stretch
                   value={this.state.message}
-                  onChange={event => {
+                  onChange={(event) => {
                     this.onMessageChange(event);
                   }}
                   placeholder={__('Description of your issue or feature request')}
@@ -71,7 +71,7 @@ class ReportPage extends React.Component {
                 <div className="section__actions">
                   <Button
                     button="primary"
-                    onClick={event => {
+                    onClick={(event) => {
                       this.submitMessage(event);
                     }}
                     className={`button-block button-primary ${this.state.submitting ? 'disabled' : ''}`}
@@ -93,7 +93,7 @@ class ReportPage extends React.Component {
                     <li>
                       <Button
                         button="link"
-                        href="https://github.com/lbryio/lbry-desktop/issues"
+                        href="https://github.com/lbry-foss/lbry-desktop/issues"
                         label={__('Submit an issue on GitHub')}
                       />
                       .

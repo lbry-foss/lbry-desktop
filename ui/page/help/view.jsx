@@ -234,11 +234,11 @@ class HelpPage extends React.PureComponent<Props, State> {
                     <tr>
                       <td>{__('App')}</td>
                       <td>
-                        {this.state.uiVersion ? this.state.uiVersion + ' - ' : ''}
+                        {this.state.uiVersion ? this.state.uiVersion + ' - Community Edition - ' : ''}
                         <Button
                           button="link"
                           label={__('Changelog')}
-                          href="https://github.com/lbryio/lbry-desktop/blob/master/CHANGELOG.md"
+                          href="https://github.com/lbry-foss/lbry-desktop/blob/master/CHANGELOG.md"
                         />
                       </td>
                     </tr>

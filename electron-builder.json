@@ -33,7 +33,8 @@
   ],
   "publish": [
     {
-      "provider": "github"
+      "provider": "github",
+      "owner": "lbry-foss"
     }
   ],
   "mac": {
