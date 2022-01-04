@@ -7,16 +7,16 @@ This repo contains the UI code that powers the official LBRY desktop app. The LB
 [lbry daemon](https://github.com/lbryio/lbry) bundled with a UI using
 [Electron](https://electron.atom.io/).
 
-**Comudity Edition**
+## Community Edition
 
-This is the *Community Edition* (CE) of the LBRY desktop app. This LBRY CE version includes additional improvements and changes, including but not limited by:
+This is the **Community Edition** (CE) of the LBRY desktop app. This LBRY CE version includes *additional improvements* and *changes*, including but not limited by:
 
-* Adding Rewards feature back;
-* Disable Matomo Analytics, meaning no telemetry/tracking;
-* Adding Referral feature back;
-* Adding YouTube Sync (partially) back;
-* Enable file reactions
-* Enable creator reactions
+* Adding **Rewards** feature back;
+* **Disable Matomo Analytics**, meaning **no telemetry / tracking**;
+* Adding **Referral** feature back;
+* Adding **YouTube Sync** (partially) back;
+* Enable **file reactions**
+* Enable **creator reactions**
 * Enable no source claims
 
 **The LBRY Community Edition binaries are licensed under the [MIT license](https://github.com/lbry-foss/lbry-desktop/blob/master/LICENSE). With additional features. Telemetry is disabled.**
