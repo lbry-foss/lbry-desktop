@@ -2,9 +2,9 @@ name: Node.js CI
 
 on:
   push:
-    branches: [master]
+    branches: [foss]
   pull_request:
-    branches: [master]
+    branches: [foss]
 
 jobs:
   lint:
