@@ -14,7 +14,7 @@ This is the **Community Edition** (CE) of the LBRY desktop app. This LBRY CE ver
 * Adding **Rewards** feature back;
 * **Disable Matomo Analytics**, meaning **no telemetry / tracking**;
 * Adding **Referral** feature back;
-* Adding **YouTube Sync** (partially) back;
+* Adding **Sync YouTube Channel** menu item back;
 * Enable **file reactions**
 * Enable **creator reactions**
 * Enable no source claims
