@@ -426,6 +426,10 @@ function HeaderMenuButtons(props: HeaderMenuButtonProps) {
               <Icon aria-hidden icon={ICONS.CHANNEL} />
               {__('New Channel')}
             </MenuItem>
+            <MenuItem className="menu__link" onSelect={() => history.push(`/$/${PAGES.YOUTUBE_SYNC}`)}>
+              <Icon aria-hidden icon={ICONS.YOUTUBE} />
+              {__('Sync YouTube Channel')}
+            </MenuItem>
           </MenuList>
         </Menu>
       )}
