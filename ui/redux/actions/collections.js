@@ -314,8 +314,9 @@ export const doCollectionEdit =
     const state = getState();
     const collection: Collection = makeSelectCollectionForId(collectionId)(state);
 
-    if (!collection)
+    if (!collection) {
       return dispatch({ type: ACTIONS.COLLECTION_ERROR, data: { message: 'collection does not exist' } });
+    }
 
     const editedCollection: Collection = makeSelectEditedCollectionForId(collectionId)(state);
     const unpublishedCollection: Collection = makeSelectUnpublishedCollectionForId(collectionId)(state);
