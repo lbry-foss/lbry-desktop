@@ -21,7 +21,7 @@ function TopPage(props: Props) {
   // if the query was actually '@name', still offer repost for 'name'
   const queryName = name[0] === '@' ? name.slice(1) : name;
   return (
-    <Page>
+    <Page className="topPage-wrapper">
       <SearchTopClaim query={name} hideLink setChannelActive={setChannelActive} />
       <ClaimListDiscover
         name={channelActive ? `@${queryName}` : queryName}
@@ -58,7 +58,6 @@ function TopPage(props: Props) {
           <div className="claim-search__menu-group">
             <Button
               label={queryName}
-              button="alt"
               onClick={() => setChannelActive(false)}
               className={classnames('button-toggle', {
                 'button-toggle--active': !channelActive,
@@ -66,7 +65,6 @@ function TopPage(props: Props) {
             />
             <Button
               label={`@${queryName}`}
-              button="alt"
               onClick={() => setChannelActive(true)}
               className={classnames('button-toggle', {
                 'button-toggle--active': channelActive,

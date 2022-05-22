@@ -16,10 +16,22 @@ type Props = {
   claim: ?StreamClaim,
   doResolveUri: (string) => void,
   className?: string,
+  watchedPercentage: number,
+  showPercentage: boolean,
 };
 
 function FileThumbnail(props: Props) {
-  const { claim, uri, doResolveUri, thumbnail: rawThumbnail, children, allowGifs = false, className } = props;
+  const {
+    claim,
+    uri,
+    doResolveUri,
+    thumbnail: rawThumbnail,
+    children,
+    allowGifs = false,
+    className,
+    watchedPercentage,
+    showPercentage,
+  } = props;
 
   const passedThumbnail = rawThumbnail && rawThumbnail.trim().replace(/^http:\/\//i, 'https://');
   const thumbnailFromClaim =
@@ -28,6 +40,12 @@ function FileThumbnail(props: Props) {
 
   const hasResolvedClaim = claim !== undefined;
   const isGif = thumbnail && thumbnail.endsWith('gif');
+
+  const viewedBar = Boolean(showPercentage && watchedPercentage) && (
+    <div className="file-thumbnail__viewed-bar">
+      <div className="file-thumbnail__viewed-bar-progress" style={{ width: `${watchedPercentage}%` }} />
+    </div>
+  );
 
   React.useEffect(() => {
     if (!hasResolvedClaim && uri) {
@@ -39,6 +57,7 @@ function FileThumbnail(props: Props) {
     return (
       <FreezeframeWrapper src={thumbnail} className={classnames('media__thumb', className)}>
         {children}
+        {viewedBar}
       </FreezeframeWrapper>
     );
   }
@@ -59,6 +78,7 @@ function FileThumbnail(props: Props) {
     return (
       <Thumb thumb={thumbnailUrl} fallback={fallback} className={className}>
         {children}
+        {viewedBar}
       </Thumb>
     );
   }
@@ -69,6 +89,7 @@ function FileThumbnail(props: Props) {
       })}
     >
       {children}
+      {viewedBar}
     </div>
   );
 }

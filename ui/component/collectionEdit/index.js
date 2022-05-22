@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 import {
-  makeSelectTitleForUri,
-  makeSelectThumbnailForUri,
+  selectTitleForUri,
+  selectThumbnailForUri,
   makeSelectMetadataItemForUri,
   makeSelectAmountForUri,
   makeSelectClaimForUri,
@@ -22,11 +22,13 @@ import * as ACTIONS from 'constants/action_types';
 import CollectionForm from './view';
 import { selectActiveChannelClaim, selectIncognito } from 'redux/selectors/app';
 import { doSetActiveChannel, doSetIncognito } from 'redux/actions/app';
+import { doCollectionEdit } from 'redux/actions/collections';
+import { doResetThumbnailStatus } from 'redux/actions/publish';
 
 const select = (state, props) => ({
   claim: makeSelectClaimForUri(props.uri)(state),
-  title: makeSelectTitleForUri(props.uri)(state),
-  thumbnailUrl: makeSelectThumbnailForUri(props.uri)(state),
+  title: selectTitleForUri(state, props.uri),
+  thumbnailUrl: selectThumbnailForUri(state, props.uri),
   description: makeSelectMetadataItemForUri(props.uri, 'description')(state),
   tags: makeSelectMetadataItemForUri(props.uri, 'tags')(state),
   locations: makeSelectMetadataItemForUri(props.uri, 'locations')(state),
@@ -44,12 +46,14 @@ const select = (state, props) => ({
   collectionClaimIds: makeSelectClaimIdsForCollectionId(props.collectionId)(state),
 });
 
-const perform = (dispatch) => ({
+const perform = (dispatch, ownProps) => ({
   publishCollectionUpdate: (params) => dispatch(doCollectionPublishUpdate(params)),
   publishCollection: (params, collectionId) => dispatch(doCollectionPublish(params, collectionId)),
   clearCollectionErrors: () => dispatch({ type: ACTIONS.CLEAR_COLLECTION_ERRORS }),
   setActiveChannel: (claimId) => dispatch(doSetActiveChannel(claimId)),
   setIncognito: (incognito) => dispatch(doSetIncognito(incognito)),
+  doCollectionEdit: (params) => dispatch(doCollectionEdit(ownProps.collectionId, params)),
+  resetThumbnailStatus: () => dispatch(doResetThumbnailStatus()),
 });
 
 export default connect(select, perform)(CollectionForm);

@@ -1,5 +1,4 @@
 // @flow
-import { SIMPLE_SITE } from 'config';
 import * as ICONS from 'constants/icons';
 import React from 'react';
 import classnames from 'classnames';
@@ -14,6 +13,7 @@ type Props = {
   level: number,
   large?: boolean,
   inline?: boolean,
+  hideTooltip?: Boolean,
 };
 
 function getChannelIcon(level: number): string {
@@ -29,7 +29,7 @@ function getChannelIcon(level: number): string {
 }
 
 function ChannelStakedIndicator(props: Props) {
-  const { channelClaim, amount, level, large = false, inline = false } = props;
+  const { channelClaim, amount, level, large = false, inline = false, hideTooltip } = props;
 
   if (!channelClaim || !channelClaim.meta) {
     return null;
@@ -38,10 +38,10 @@ function ChannelStakedIndicator(props: Props) {
   const isControlling = channelClaim && channelClaim.meta.is_controlling;
   const icon = getChannelIcon(level);
 
-  return (
-    SIMPLE_SITE && (
+  if (!hideTooltip) {
+    return (
       <Tooltip
-        label={
+        title={
           <div className="channel-staked__tooltip">
             <div className="channel-staked__tooltip-icons">
               <LevelIcon icon={icon} isControlling={isControlling} size={isControlling ? 14 : 10} />
@@ -65,8 +65,19 @@ function ChannelStakedIndicator(props: Props) {
           <LevelIcon icon={icon} large={large} isControlling={isControlling} />
         </div>
       </Tooltip>
-    )
-  );
+    );
+  } else {
+    return (
+      <div
+        className={classnames('channel-staked__wrapper', {
+          'channel-staked__wrapper--large': large,
+          'channel-staked__wrapper--inline': inline,
+        })}
+      >
+        <LevelIcon icon={icon} large={large} isControlling={isControlling} />
+      </div>
+    );
+  }
 }
 
 type LevelIconProps = {

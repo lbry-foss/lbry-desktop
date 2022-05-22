@@ -2,7 +2,7 @@
 // https://github.com/carmelopullara/react-feather
 // Note: Icons should be named for their purpose, rather than the actual icon.
 //       The goal being to reduce multiple uses of the same icon for different purposes.
-//
+
 export const REWARDS = 'Award';
 export const LOCAL = 'Folder';
 export const ALERT = 'AlertCircle';
@@ -68,6 +68,7 @@ export const UP = 'ChevronUp';
 export const UP_TOP = 'ChevronUpTop';
 export const DOWN = 'ChevronDown';
 export const DOWN_BOTTOM = 'ChevronDownBottom';
+export const DRAG = 'DragAndDrop';
 export const SECURE = 'Lock';
 export const MENU = 'Menu';
 export const BACKUP = 'Database';
@@ -149,10 +150,15 @@ export const CREATOR_LIKE = 'CreatorLike';
 export const CHEF = 'Chef';
 export const ANONYMOUS = 'Anonymous';
 export const CHANNEL_LEVEL_1 = 'ChannelLevel1';
+export const CHANNEL_LEVEL_1_B = 'ChannelLevel1B';
 export const CHANNEL_LEVEL_2 = 'ChannelLevel2';
+export const CHANNEL_LEVEL_2_B = 'ChannelLevel2B';
 export const CHANNEL_LEVEL_3 = 'ChannelLevel3';
+export const CHANNEL_LEVEL_3_B = 'ChannelLevel3B';
 export const CHANNEL_LEVEL_4 = 'ChannelLevel4';
+export const CHANNEL_LEVEL_4_B = 'ChannelLevel4B';
 export const CHANNEL_LEVEL_5 = 'ChannelLevel5';
+export const CHANNEL_LEVEL_5_B = 'ChannelLevel5B';
 export const MOVIES = 'Movies';
 export const WILD_WEST = 'WildWest';
 export const UNIVERSE = 'Universe';
@@ -178,3 +184,5 @@ export const LIFE = 'Life';
 export const ARTISTS = 'Artists';
 export const MYSTERIES = 'Mysteries';
 export const TECHNOLOGY = 'Technology';
+export const EMOJI = 'Emoji';
+export const STICKER = 'Sticker';

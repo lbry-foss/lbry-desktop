@@ -1,22 +1,31 @@
 // @flow
+import { CHANNEL_STAKED_LEVEL_VIDEO_COMMENTS } from 'config';
+import { formattedLinks, inlineLinks } from 'util/remark-lbry';
+import { formattedTimestamp, inlineTimestamp } from 'util/remark-timestamp';
+import { formattedEmote, inlineEmote } from 'util/remark-emote';
+import * as ICONS from 'constants/icons';
 import * as React from 'react';
+import Button from 'component/button';
 import classnames from 'classnames';
+import defaultSchema from 'hast-util-sanitize/lib/github.json';
+import MarkdownLink from 'component/markdownLink';
+import OptimizedImage from 'component/optimizedImage';
+import reactRenderer from 'remark-react';
 import remark from 'remark';
 import remarkAttr from 'remark-attr';
-import remarkStrip from 'strip-markdown';
-import remarkEmoji from 'remark-emoji';
 import remarkBreaks from 'remark-breaks';
+import remarkEmoji from 'remark-emoji';
 import remarkFrontMatter from 'remark-frontmatter';
-import reactRenderer from 'remark-react';
-import MarkdownLink from 'component/markdownLink';
-import defaultSchema from 'hast-util-sanitize/lib/github.json';
-import { formatedLinks, inlineLinks } from 'util/remark-lbry';
-import { formattedTimestamp, inlineTimestamp } from 'util/remark-timestamp';
+import remarkStrip from 'strip-markdown';
 import ZoomableImage from 'component/zoomableImage';
-import { CHANNEL_STAKED_LEVEL_VIDEO_COMMENTS } from 'config';
-import Button from 'component/button';
-import * as ICONS from 'constants/icons';
 import { parse } from 'node-html-parser';
+
+const RE_EMOTE = /:\+1:|:-1:|:[\w-]+:/;
+
+function isEmote(title, src) {
+  return title && RE_EMOTE.test(title) && src.includes('static.odycdn.com/emoticons');
+}
+
 type SimpleTextProps = {
   children?: React.Node,
 };
@@ -24,6 +33,7 @@ type SimpleTextProps = {
 type SimpleLinkProps = {
   href?: string,
   title?: string,
+  embed?: boolean,
   children?: React.Node,
 };
 
@@ -42,6 +52,7 @@ type MarkdownProps = {
   className?: string,
   parentCommentId?: string,
   isMarkdownPost?: boolean,
+  disableTimestamps?: boolean,
   stakedLevel?: number,
 };
 
@@ -56,7 +67,7 @@ const SimpleText = (props: SimpleTextProps) => {
 // ****************************************************************************
 
 const SimpleLink = (props: SimpleLinkProps) => {
-  const { title, children, href } = props;
+  const { title, children, href, embed } = props;
 
   if (!href) {
     return children || null;
@@ -72,13 +83,13 @@ const SimpleLink = (props: SimpleLinkProps) => {
 
   const [uri, search] = href.split('?');
   const urlParams = new URLSearchParams(search);
-  const embed = urlParams.get('embed');
+  const embedParam = urlParams.get('embed');
 
-  if (embed) {
+  if (embed || embedParam) {
     // Decode this since users might just copy it from the url bar
     const decodedUri = decodeURI(uri);
     return (
-      <div className="embed__inline-button-preview">
+      <div className="embed__inline-button embed__inline-button--preview">
         <pre>{decodedUri}</pre>
       </div>
     );
@@ -93,8 +104,13 @@ const SimpleLink = (props: SimpleLinkProps) => {
 
 const SimpleImageLink = (props: ImageLinkProps) => {
   const { src, title, alt, helpText } = props;
+
   if (!src) {
     return null;
+  }
+
+  if (isEmote(title, src)) {
+    return <OptimizedImage src={src} title={title} className="emote" waitLoad loading="lazy" />;
   }
 
   return (
@@ -131,10 +147,21 @@ function isStakeEnoughForPreview(stakedLevel) {
 // ****************************************************************************
 // ****************************************************************************
 
-const MarkdownPreview = (props: MarkdownProps) => {
-  const { content, strip, simpleLinks, noDataStore, className, parentCommentId, isMarkdownPost, stakedLevel } = props;
+export default React.memo<MarkdownProps>(function MarkdownPreview(props: MarkdownProps) {
+  const {
+    content,
+    strip,
+    simpleLinks,
+    noDataStore,
+    className,
+    parentCommentId,
+    isMarkdownPost,
+    disableTimestamps,
+    stakedLevel,
+  } = props;
+
   const strippedContent = content
-    ? content.replace(REPLACE_REGEX, (iframeHtml, y, iframeSrc) => {
+    ? content.replace(REPLACE_REGEX, (iframeHtml) => {
         // Let the browser try to create an iframe to see if the markup is valid
         let lbrySrc;
         try {
@@ -147,7 +174,6 @@ const MarkdownPreview = (props: MarkdownProps) => {
         if (lbrySrc && lbrySrc.startsWith('lbry://')) {
           return lbrySrc;
         }
-
         return iframeHtml;
       })
     : '';
@@ -169,9 +195,16 @@ const MarkdownPreview = (props: MarkdownProps) => {
           ),
       // Workaraund of remarkOptions.Fragment
       div: React.Fragment,
-      img: isStakeEnoughForPreview(stakedLevel)
-        ? ZoomableImage
-        : (imgProps) => <SimpleImageLink src={imgProps.src} alt={imgProps.alt} title={imgProps.title} />,
+      img: (imgProps) =>
+        noDataStore ? (
+          <div className="file-viewer file-viewer--document">
+            <img {...imgProps} />
+          </div>
+        ) : isStakeEnoughForPreview(stakedLevel) && !isEmote(imgProps.title, imgProps.src) ? (
+          <ZoomableImage {...imgProps} />
+        ) : (
+          <SimpleImageLink src={imgProps.src} alt={imgProps.alt} title={imgProps.title} />
+        ),
     },
   };
 
@@ -206,11 +239,13 @@ const MarkdownPreview = (props: MarkdownProps) => {
           .use(remarkAttr, remarkAttrOpts)
           // Remark plugins for lbry urls
           // Note: The order is important
-          .use(formatedLinks)
+          .use(formattedLinks)
           .use(inlineLinks)
-          .use(isMarkdownPost ? null : inlineTimestamp)
-          .use(isMarkdownPost ? null : formattedTimestamp)
+          .use(disableTimestamps || isMarkdownPost ? null : inlineTimestamp)
+          .use(disableTimestamps || isMarkdownPost ? null : formattedTimestamp)
           // Emojis
+          .use(inlineEmote)
+          .use(formattedEmote)
           .use(remarkEmoji)
           // Render new lines without needing spaces.
           .use(remarkBreaks)
@@ -220,6 +255,4 @@ const MarkdownPreview = (props: MarkdownProps) => {
       }
     </div>
   );
-};
-
-export default MarkdownPreview;
+});

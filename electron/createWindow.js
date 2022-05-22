@@ -10,6 +10,7 @@ import { TO_TRAY_WHEN_CLOSED } from 'constants/settings';
 import setupBarMenu from './menu/setupBarMenu';
 import * as PAGES from 'constants/pages';
 const remote = require('@electron/remote/main');
+const shell = require('electron').shell;
 function GetAppLangCode() {
   // https://www.electronjs.org/docs/api/locales
   // 1. Gets the user locale.
@@ -94,7 +95,7 @@ export default appState => {
 
   // is it a lbry://? pointing to an app page
   if (deepLinkingURI.includes(lbryProtoQ)) {
-    let path = deepLinkingURI.substr(lbryProtoQ.length);
+    let path = deepLinkingURI.slice(lbryProtoQ.length);
     let page = path.indexOf('?') >= 0 ? path.substring(0, path.indexOf('?')) : path;
     if (Object.values(PAGES).includes(page)) {
       deepLinkingURI = deepLinkingURI.replace(lbryProtoQ, '#/$/');
@@ -190,6 +191,11 @@ export default appState => {
   });
 
   window.webContents.setWindowOpenHandler((details) => {
+    // Only open http and https links to prevent
+    // security issues.
+    if (['https:', 'http:'].includes(new URL(details.url).protocol)) {
+      shell.openExternal(details.url);
+    }
     return { action: 'deny' };
   });
 

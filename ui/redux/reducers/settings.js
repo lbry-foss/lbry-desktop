@@ -1,17 +1,7 @@
 import * as ACTIONS from 'constants/action_types';
 import * as SETTINGS from 'constants/settings';
-import * as SHARED_PREFERENCES from 'constants/shared_preferences';
 import moment from 'moment';
-import { getSubsetFromKeysArray } from 'util/sync-settings';
 import { getDefaultLanguage } from 'util/default-languages';
-import { UNSYNCED_SETTINGS } from 'config';
-import Comments from 'comments';
-
-const { CLIENT_SYNC_KEYS } = SHARED_PREFERENCES;
-const settingsToIgnore = (UNSYNCED_SETTINGS && UNSYNCED_SETTINGS.trim().split(' ')) || [];
-const clientSyncKeys = settingsToIgnore.length
-  ? CLIENT_SYNC_KEYS.filter((k) => !settingsToIgnore.includes(k))
-  : CLIENT_SYNC_KEYS;
 
 const reducers = {};
 let settingLanguage = [];
@@ -35,14 +25,14 @@ const defaultState = {
     [SETTINGS.EMAIL_COLLECTION_ACKNOWLEDGED]: false,
     [SETTINGS.FOLLOWING_ACKNOWLEDGED]: false,
     [SETTINGS.TAGS_ACKNOWLEDGED]: false,
-    [SETTINGS.ENABLE_SYNC]: IS_WEB,
+    [SETTINGS.ENABLE_SYNC]: false,
     [SETTINGS.ENABLE_PUBLISH_PREVIEW]: true,
 
     // UI
     [SETTINGS.LANGUAGE]: null,
     [SETTINGS.SEARCH_IN_LANGUAGE]: false,
-    [SETTINGS.THEME]: __('light'),
-    [SETTINGS.THEMES]: [__('light'), __('dark')],
+    [SETTINGS.THEME]: __('dark'),
+    [SETTINGS.THEMES]: [__('dark'), __('light')],
     [SETTINGS.HOMEPAGE]: null,
     [SETTINGS.HIDE_SPLASH_ANIMATION]: false,
     [SETTINGS.HIDE_BALANCE]: false,
@@ -55,6 +45,7 @@ const defaultState = {
     [SETTINGS.DESKTOP_WINDOW_ZOOM]: 1,
     [SETTINGS.CUSTOM_COMMENTS_SERVER_ENABLED]: false,
     [SETTINGS.CUSTOM_COMMENTS_SERVER_URL]: '',
+    [SETTINGS.CUSTOM_COMMENTS_SERVERS]: [],
     [SETTINGS.CUSTOM_SHARE_URL_ENABLED]: false,
     [SETTINGS.CUSTOM_SHARE_URL]: '',
 
@@ -76,6 +67,7 @@ const defaultState = {
     [SETTINGS.FLOATING_PLAYER]: true,
     [SETTINGS.AUTO_DOWNLOAD]: true,
     [SETTINGS.HIDE_REPOSTS]: false,
+    [SETTINGS.PERSIST_WATCH_TIME]: true,
 
     // OS
     [SETTINGS.AUTO_LAUNCH]: true,
@@ -162,26 +154,14 @@ reducers[ACTIONS.SHARED_PREFERENCE_SET] = (state, action) => {
   });
 };
 
-reducers[ACTIONS.SYNC_CLIENT_SETTINGS] = (state) => {
-  const { clientSettings } = state;
-  const sharedPreferences = Object.assign({}, state.sharedPreferences);
-  const selectedClientSettings = getSubsetFromKeysArray(clientSettings, clientSyncKeys);
-  const newSharedPreferences = { ...sharedPreferences, ...selectedClientSettings };
-  return Object.assign({}, state, { sharedPreferences: newSharedPreferences });
+reducers[ACTIONS.SYNC_CLIENT_SETTINGS] = (state, action) => {
+  const { data } = action;
+  return Object.assign({}, state, { sharedPreferences: data });
 };
 
-reducers[ACTIONS.USER_STATE_POPULATE] = (state, action) => {
-  const { clientSettings: currentClientSettings } = state;
-  const { settings: sharedPreferences } = action.data;
-  const selectedSettings = sharedPreferences ? getSubsetFromKeysArray(sharedPreferences, clientSyncKeys) : {};
-  const mergedClientSettings = { ...currentClientSettings, ...selectedSettings };
-  const newSharedPreferences = sharedPreferences || {};
-
-  Comments.setServerUrl(
-    mergedClientSettings[SETTINGS.CUSTOM_COMMENTS_SERVER_ENABLED]
-      ? mergedClientSettings[SETTINGS.CUSTOM_COMMENTS_SERVER_URL]
-      : undefined
-  );
+reducers[ACTIONS.SYNC_STATE_POPULATE] = (state, action) => {
+  const { walletPrefSettings, mergedClientSettings } = action.data;
+  const newSharedPreferences = walletPrefSettings || {};
 
   return Object.assign({}, state, {
     sharedPreferences: newSharedPreferences,

@@ -3,6 +3,7 @@ import * as ICONS from 'constants/icons';
 import * as PAGES from 'constants/pages';
 import React from 'react';
 import { parseURI } from 'util/lbryURI';
+import { formatNumber } from 'util/number';
 import { YOUTUBE_STATUSES } from 'lbryinc';
 import Page from 'component/page';
 import SubscribeButton from 'component/subscribeButton';
@@ -19,7 +20,6 @@ import ChannelForm from 'component/channelForm';
 import classnames from 'classnames';
 import HelpLink from 'component/common/help-link';
 import ClaimSupportButton from 'component/claimSupportButton';
-import ChannelStakedIndicator from 'component/channelStakedIndicator';
 import ClaimMenuList from 'component/claimMenuList';
 import OptimizedImage from 'component/optimizedImage';
 import Yrbl from 'component/yrbl';
@@ -94,7 +94,7 @@ function ChannelPage(props: Props) {
   const { channelName } = parseURI(uri);
   const { permanent_url: permanentUrl } = claim;
   const claimId = claim.claim_id;
-  const formattedSubCount = Number(subCount).toLocaleString();
+  const formattedSubCount = formatNumber(subCount, 2, true);
   const isBlocked = claim && blockedChannels.includes(claim.permanent_url);
   const isMuted = claim && mutedChannels.includes(claim.permanent_url);
   const isMyYouTubeChannel =
@@ -208,7 +208,7 @@ function ChannelPage(props: Props) {
   }
 
   return (
-    <Page noFooter>
+    <Page className="channelPage-wrapper" noFooter>
       <header className="channel-cover">
         <div className="channel__quick-actions">
           {isMyYouTubeChannel && (
@@ -228,12 +228,11 @@ function ChannelPage(props: Props) {
         {cover && <img className={classnames('channel-cover__custom')} src={PlaceholderTx} />}
         {cover && <OptimizedImage className={classnames('channel-cover__custom')} src={cover} objectFit="cover" />}
         <div className="channel__primary-info">
-          <ChannelThumbnail className="channel__thumbnail--channel-page" uri={uri} allowGifs hideStakedIndicator />
+          <ChannelThumbnail className="channel__thumbnail--channel-page" uri={uri} allowGifs />
           <h1 className="channel__title">
             <TruncatedText lines={2} showTooltip>
               {title || (channelName && '@' + channelName)}
             </TruncatedText>
-            <ChannelStakedIndicator uri={uri} large />
           </h1>
           <div className="channel__meta">
             <span>

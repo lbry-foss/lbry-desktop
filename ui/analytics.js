@@ -3,22 +3,10 @@ import { Lbryio } from 'lbryinc';
 import * as Sentry from '@sentry/browser';
 import MatomoTracker from '@datapunt/matomo-tracker-js';
 import { history } from './store';
-import { SDK_API_PATH } from './index';
-// @if TARGET='app'
 import Native from 'native';
 import ElectronCookies from '@meetfranz/electron-cookies';
 import { generateInitialUrl } from 'util/url';
-// @endif
 import { MATOMO_ID, MATOMO_URL } from 'config';
-// import getConnectionSpeed from 'util/detect-user-bandwidth';
-
-// let userDownloadBandwidthInBitsPerSecond;
-// async function getUserBandwidth() {
-//   userDownloadBandwidthInBitsPerSecond = await getConnectionSpeed();
-// }
-
-// get user bandwidth every minute, starting after an initial one minute wait
-// setInterval(getUserBandwidth, 1000 * 60);
 
 const isProduction = process.env.NODE_ENV === 'production';
 const devInternalApis = process.env.LBRY_API_URL && process.env.LBRY_API_URL.includes('dev');
@@ -27,15 +15,13 @@ export const SHARE_INTERNAL = 'shareInternal';
 const SHARE_THIRD_PARTY = 'shareThirdParty';
 
 const WATCHMAN_BACKEND_ENDPOINT = 'https://watchman.na-backend.odysee.com/reports/playback';
-const SEND_DATA_TO_WATCHMAN_INTERVAL = 10; // in seconds
+// const SEND_DATA_TO_WATCHMAN_INTERVAL = 10; // in seconds
 
-// @if TARGET='app'
 if (isProduction) {
   ElectronCookies.enable({
     origin: 'https://lbry.tv',
   });
 }
-// @endif
 
 type Analytics = {
   error: (string) => Promise<any>,
@@ -63,9 +49,6 @@ type Analytics = {
       readyState: number,
     }
   ) => Promise<any>,
-  adsFetchedEvent: () => void,
-  adsReceivedEvent: (any) => void,
-  adsErrorEvent: (any) => void,
   emailProvidedEvent: () => void,
   emailVerifiedEvent: () => void,
   rewardEligibleEvent: () => void,
@@ -82,12 +65,8 @@ type LogPublishParams = {
   channel_claim_id?: string,
 };
 
-let internalAnalyticsEnabled: boolean = IS_WEB || false;
-// let thirdPartyAnalyticsEnabled: boolean = IS_WEB || false;
-// @if TARGET='app'
+let internalAnalyticsEnabled: boolean = false;
 if (window.localStorage.getItem(SHARE_INTERNAL) === 'true') internalAnalyticsEnabled = true;
-// if (window.localStorage.getItem(SHARE_THIRD_PARTY) === 'true') thirdPartyAnalyticsEnabled = true;
-// @endif
 
 /**
  * Determine the mobile device type viewing the data
@@ -96,26 +75,7 @@ if (window.localStorage.getItem(SHARE_INTERNAL) === 'true') internalAnalyticsEna
  * @returns {String}
  */
 function getDeviceType() {
-  // We may not care what the device is if it's in a web browser. Commenting out for now.
-  // if (!IS_WEB) {
-  //   return 'elt';
-  // }
-  // const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-  //
-  // if (/android/i.test(userAgent)) {
-  //   return 'adr';
-  // }
-  //
-  // // iOS detection from: http://stackoverflow.com/a/9039885/177710
-  // if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
-  //   return 'ios';
-  // }
-
-  // default as web, this can be optimized
-  if (!IS_WEB) {
-    return 'dsk';
-  }
-  return 'web';
+  return 'dsk';
 }
 // variables initialized for watchman
 let amountOfBufferEvents = 0;
@@ -189,11 +149,6 @@ function startWatchmanIntervalIfNotRunning() {
   if (!watchmanInterval) {
     // instantiate the first time to calculate duration from
     lastSentTime = new Date();
-
-    // only set an interval if analytics are enabled and is prod
-    if (isProduction && IS_WEB) {
-      watchmanInterval = setInterval(sendAndResetWatchmanData, 1000 * SEND_DATA_TO_WATCHMAN_INTERVAL);
-    }
   }
 }
 
@@ -210,10 +165,7 @@ async function sendWatchmanData(body) {
     });
 
     return response;
-  } catch (err) {
-    console.log('ERROR FROM WATCHMAN BACKEND');
-    console.log(err);
-  }
+  } catch (err) {}
 }
 
 const analytics: Analytics = {
@@ -255,7 +207,7 @@ const analytics: Analytics = {
       startWatchmanIntervalIfNotRunning();
     }
   },
-  videoStartEvent: (claimId, duration, poweredBy, passedUserId, canonicalUrl, passedPlayer, videoBitrate) => {
+  videoStartEvent: (claimId, timeToStartVideo, poweredBy, passedUserId, canonicalUrl, passedPlayer, videoBitrate) => {
     // populate values for watchman when video starts
     userId = passedUserId;
     claimUrl = canonicalUrl;
@@ -265,8 +217,8 @@ const analytics: Analytics = {
     videoPlayer = passedPlayer;
     bitrateAsBitsPerSecond = videoBitrate;
 
-    sendPromMetric('time_to_start', duration);
-    sendMatomoEvent('Media', 'TimeToStart', claimId, duration);
+    // sendPromMetric('time_to_start', duration);
+    sendMatomoEvent('Media', 'TimeToStart', claimId, timeToStartVideo);
   },
   error: (message) => {
     return new Promise((resolve) => {
@@ -338,7 +290,7 @@ const analytics: Analytics = {
           claim_id: claimId,
         };
 
-        if (timeToStart && !IS_WEB) {
+        if (timeToStart) {
           params.time_to_start = timeToStart;
         }
 
@@ -430,14 +382,15 @@ function sendMatomoEvent(category, action, name, value) {
   }
 }
 
-function sendPromMetric(name: string, value?: number) {
-  if (IS_WEB) {
-    let url = new URL(SDK_API_PATH + '/metric/ui');
-    const params = { name: name, value: value ? value.toString() : '' };
-    url.search = new URLSearchParams(params).toString();
-    return fetch(url, { method: 'post' });
-  }
-}
+// Prometheus
+// function sendPromMetric(name: string, value?: number) {
+//   if (IS_WEB) {
+//     let url = new URL(SDK_API_PATH + '/metric/ui');
+//     const params = { name: name, value: value ? value.toString() : '' };
+//     url.search = new URLSearchParams(params).toString();
+//     return fetch(url, { method: 'post' });
+//   }
+// }
 
 const MatomoInstance = new MatomoTracker({
   urlBase: MATOMO_URL,
@@ -449,17 +402,7 @@ const MatomoInstance = new MatomoTracker({
   // linkTracking: false // optional, default value: true
 });
 
-// Manually call the first page view
-// React Router doesn't include this on `history.listen`
-// @if TARGET='web'
-analytics.pageView(window.location.pathname + window.location.search, window.location.search);
-// @endif
-
-// @if TARGET='app'
-analytics.pageView(
-  window.location.pathname.split('.html')[1] + window.location.search || generateInitialUrl(window.location.hash)
-);
-// @endif;
+analytics.pageView(generateInitialUrl(window.location.hash));
 
 // Listen for url changes and report
 // This will include search queries

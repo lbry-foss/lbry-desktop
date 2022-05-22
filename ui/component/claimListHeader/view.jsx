@@ -230,7 +230,6 @@ function ClaimListHeader(props: Props) {
               {CS.ORDER_BY_TYPES.map((type) => (
                 <Button
                   key={type}
-                  button="alt"
                   onClick={(e) =>
                     handleChange({
                       key: CS.ORDER_BY_KEY,
@@ -251,7 +250,6 @@ function ClaimListHeader(props: Props) {
           <div className="claim-search__menu-group">
             {!hideAdvancedFilter && (
               <Button
-                button="alt"
                 aria-label={__('More')}
                 className={classnames(`button-toggle button-toggle--top button-toggle--more`, {
                   'button-toggle--custom': isFiltered(),
@@ -261,7 +259,8 @@ function ClaimListHeader(props: Props) {
                 onClick={() => setExpanded(!expanded)}
               />
             )}
-
+          </div>
+          <div className="claim-search__menu-group">
             {tileLayout !== undefined && (
               <Button
                 onClick={() => {
@@ -424,7 +423,8 @@ function ClaimListHeader(props: Props) {
                     {CS.DURATION_TYPES.map((dur) => (
                       <option key={dur} value={dur}>
                         {/* i18fixme */}
-                        {dur === CS.DURATION_SHORT && __('Short (< 4 minutes)')}
+                        {dur === CS.DURATION_SHORT && __('Short (< 4 min)')}
+                        {dur === CS.DURATION_MEDIUM && __('Medium (4 - 20 min)')}
                         {dur === CS.DURATION_LONG && __('Long (> 20 min)')}
                         {dur === CS.DURATION_ALL && __('Any')}
                       </option>

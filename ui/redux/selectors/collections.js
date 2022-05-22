@@ -3,6 +3,7 @@ import fromEntries from '@ungap/from-entries';
 import { createSelector } from 'reselect';
 import { selectMyCollectionIds, makeSelectClaimForUri } from 'redux/selectors/claims';
 import { parseURI } from 'util/lbryURI';
+import { isClaimPlayable } from 'util/claim';
 
 const selectState = (state: { collections: CollectionState }) => state.collections;
 
@@ -16,6 +17,8 @@ export const selectMyUnpublishedCollections = createSelector(selectState, (state
 export const selectMyEditedCollections = createSelector(selectState, (state) => state.edited);
 
 export const selectPendingCollections = createSelector(selectState, (state) => state.pending);
+
+export const selectLastUsedCollection = createSelector(selectState, (state) => state.lastUsedCollection);
 
 export const makeSelectEditedCollectionForId = (id: string) =>
   createSelector(selectMyEditedCollections, (eLists) => eLists[id]);
@@ -156,13 +159,13 @@ export const makeSelectClaimIdsForCollectionId = (id: string) =>
     return ids;
   });
 
-export const makeSelectIndexForUrlInCollection = (url: string, id: string) =>
+export const makeSelectIndexForUrlInCollection = (url: string, id: string, ignoreShuffle?: boolean) =>
   createSelector(
     (state) => state.content.shuffleList,
     makeSelectUrlsForCollectionId(id),
     makeSelectClaimForUri(url),
     (shuffleState, urls, claim) => {
-      const shuffleUrls = shuffleState && shuffleState.collectionId === id && shuffleState.newUrls;
+      const shuffleUrls = !ignoreShuffle && shuffleState && shuffleState.collectionId === id && shuffleState.newUrls;
       const listUrls = shuffleUrls || urls;
 
       const index = listUrls && listUrls.findIndex((u) => u === url);
@@ -214,7 +217,7 @@ export const makeSelectNextUrlForCollectionAndUrl = (id: string, url: string) =>
 
       if (index > -1) {
         const listUrls = shuffleUrls || urls;
-        // We'll get the next playble url
+        // We'll get the next playable url
         let remainingUrls = listUrls.slice(index + 1);
         if (!remainingUrls.length && loopList) {
           remainingUrls = listUrls.slice(0);
@@ -224,6 +227,34 @@ export const makeSelectNextUrlForCollectionAndUrl = (id: string, url: string) =>
       } else {
         return null;
       }
+    }
+  );
+
+export const makeSelectPrevPlayableUrlFromCollectionAndUrl = (collectionId: string, url: string) =>
+  createSelector(
+    (state) => state,
+    (state) => {
+      let prevUrl = url;
+      let prevPlayableClaim;
+      do {
+        prevUrl = makeSelectPreviousUrlForCollectionAndUrl(collectionId, prevUrl)(state);
+        prevPlayableClaim = makeSelectClaimForUri(prevUrl)(state);
+      } while (prevUrl && !isClaimPlayable(prevPlayableClaim));
+      return prevUrl;
+    }
+  );
+
+export const makeSelectNextPlayableUrlFromCollectionAndUrl = (collectionId: string, url: string) =>
+  createSelector(
+    (state) => state,
+    (state) => {
+      let nextUrl = url;
+      let nextPlayableClaim;
+      do {
+        nextUrl = makeSelectNextUrlForCollectionAndUrl(collectionId, nextUrl)(state);
+        nextPlayableClaim = makeSelectClaimForUri(nextUrl)(state);
+      } while (nextUrl && !isClaimPlayable(nextPlayableClaim));
+      return nextUrl;
     }
   );
 

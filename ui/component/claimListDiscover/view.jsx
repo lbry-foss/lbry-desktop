@@ -94,6 +94,13 @@ type Props = {
   doClaimSearch: ({}) => void,
   doToggleTagFollowDesktop: (string) => void,
   doFetchViewCount: (claimIdCsv: string) => void,
+
+  loadedCallback?: (number) => void,
+  maxClaimRender?: number,
+  useSkeletonScreen?: boolean,
+  excludeUris?: Array<string>,
+
+  swipeLayout: boolean,
 };
 
 function ClaimListDiscover(props: Props) {
@@ -157,6 +164,11 @@ function ClaimListDiscover(props: Props) {
     empty,
     claimsByUri,
     doFetchViewCount,
+    loadedCallback,
+    maxClaimRender,
+    useSkeletonScreen = true,
+    excludeUris = [],
+    swipeLayout = false,
   } = props;
   const didNavigateForward = history.action === 'PUSH';
   const { search } = location;
@@ -241,7 +253,7 @@ function ClaimListDiscover(props: Props) {
     release_time?: string,
     claim_type?: string | Array<string>,
     name?: string,
-    duration?: string,
+    duration?: string | Array<string>,
     reposted_claim_id?: string,
     stream_types?: any,
     fee_amount?: string,
@@ -333,6 +345,8 @@ function ClaimListDiscover(props: Props) {
       options.duration = '<=240';
     } else if (durationParam === CS.DURATION_LONG) {
       options.duration = '>=1200';
+    } else if (durationParam === CS.DURATION_MEDIUM) {
+      options.duration = ['<=1200', '>=240'];
     }
   }
 
@@ -383,22 +397,6 @@ function ClaimListDiscover(props: Props) {
   const searchKey = createNormalizedClaimSearchKey(options);
   const claimSearchResult = claimSearchByQuery[searchKey];
   const claimSearchResultLastPageReached = claimSearchByQueryLastPageReached[searchKey];
-
-  // uncomment to fix an item on a page
-  //   const fixUri = 'lbry://@corbettreport#0/lbryodysee#5';
-  //   if (
-  //     orderParam === CS.ORDER_BY_NEW &&
-  //     claimSearchResult &&
-  //     claimSearchResult.length > 2 &&
-  //     window.location.pathname === '/$/rabbithole'
-  //   ) {
-  //     if (claimSearchResult.indexOf(fixUri) !== -1) {
-  //       claimSearchResult.splice(claimSearchResult.indexOf(fixUri), 1);
-  //     } else {
-  //       claimSearchResult.pop();
-  //     }
-  //     claimSearchResult.splice(2, 0, fixUri);
-  //   }
 
   const [prevOptions, setPrevOptions] = React.useState(null);
 
@@ -509,6 +507,21 @@ function ClaimListDiscover(props: Props) {
   }
 
   function resolveOrderByOption(orderBy: string | Array<string>, sortBy: string | Array<string>) {
+    // let order_by; // peterson 038692cafc793616cceaf10b88909fecde07ad0b
+    //
+    // switch (orderBy) {
+    //   case CS.ORDER_BY_TRENDING:
+    //     order_by = CS.ORDER_BY_TRENDING_VALUE;
+    //     break;
+    //   case CS.ORDER_BY_NEW:
+    //     order_by = CS.ORDER_BY_NEW_VALUE;
+    //     break;
+    //   case CS.ORDER_BY_NEW_ASC:
+    //     order_by = CS.ORDER_BY_NEW_ASC_VALUE;
+    //     break;
+    //   default:
+    //     order_by = CS.ORDER_BY_TOP_VALUE;
+    // }
     const order_by =
       orderBy === CS.ORDER_BY_TRENDING
         ? CS.ORDER_BY_TRENDING_VALUE
@@ -585,8 +598,12 @@ function ClaimListDiscover(props: Props) {
             searchOptions={options}
             showNoSourceClaims={showNoSourceClaims}
             empty={empty}
+            maxClaimRender={maxClaimRender}
+            excludeUris={excludeUris}
+            loadedCallback={loadedCallback}
+            swipeLayout={swipeLayout}
           />
-          {loading && (
+          {loading && useSkeletonScreen && (
             <div className="claim-grid">
               {new Array(dynamicPageSize).fill(1).map((x, i) => (
                 <ClaimPreviewTile key={i} placeholder="loading" />
@@ -618,8 +635,13 @@ function ClaimListDiscover(props: Props) {
             searchOptions={options}
             showNoSourceClaims={hasNoSource || showNoSourceClaims}
             empty={empty}
+            maxClaimRender={maxClaimRender}
+            excludeUris={excludeUris}
+            loadedCallback={loadedCallback}
+            swipeLayout={swipeLayout}
           />
           {loading &&
+            useSkeletonScreen &&
             new Array(dynamicPageSize)
               .fill(1)
               .map((x, i) => (

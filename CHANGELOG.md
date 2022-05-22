@@ -3,21 +3,123 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased for Desktop]
-## [0.52.1-alpha.3] - [2021-12-31]
+## [0.53.3] - [2022-04-27]
+
+## Fixed
+ - Reverted lbry.tv changes that broke production login ([#7569](https://github.com/lbryio/lbry-desktop/pull/7569))
+ - Reverted lbry.tv changes that broke login ([#7570](https://github.com/lbryio/lbry-desktop/pull/7570))
+
+## [0.53.2] - [2022-04-26]
 
 ### Changed
+- Upgraded Yarn to Berry branch ([#7530](https://github.com/lbryio/lbry-desktop/pull/7530))
+- Removed some lbrytv references ([#7560](https://github.com/lbryio/lbry-desktop/pull/7560))
+- Removed some lbrytv player references ([#7552](https://github.com/lbryio/lbry-desktop/pull/7552))
+
+## Fixed
+- Repost style issues ([#7559](https://github.com/lbryio/lbry-desktop/pull/7559))
+- Disappearing sidebar thumbs ([#7556](https://github.com/lbryio/lbry-desktop/pull/7556))
+- Restore tags sidebar link ([#7555](https://github.com/lbryio/lbry-desktop/pull/7555))
+- Playlist view link no longer crashes ([#7552](https://github.com/lbryio/lbry-desktop/pull/7552))
+
+## [0.53.1] - [2022-04-22]
+
+### Added
+- Uploads: show placeholder when loading page _community pr!_ ([#7531](https://github.com/lbryio/lbry-desktop/pull/7531))
+- Sidebar channel search _styles pr_ ([#7542](https://github.com/lbryio/lbry-desktop/pull/7542))
+- Viewed content progress indicator on thumbnail part 1 ([#7541](https://github.com/lbryio/lbry-desktop/pull/7541))
+- Viewed content progress indicator on thumbnail part 2 ([#7547](https://github.com/lbryio/lbry-desktop/pull/7547))
+- Ability to search through publishes ([#7535](https://github.com/lbryio/lbry-desktop/pull/7535))
+
+### Changed
+- Large styles revamp following odysee _styles pr_ ([#7542](https://github.com/lbryio/lbry-desktop/pull/7542))
+
+### Fixed
+- Fix bad rerender on homepage _styles pr_ ([#7542](https://github.com/lbryio/lbry-desktop/pull/7542))
+- Fix post-editor preview mode _community pr!_ ([#7532](https://github.com/lbryio/lbry-desktop/pull/7532))
+- Fix send-tip default tab ([#7533](https://github.com/lbryio/lbry-desktop/pull/7533))
+
+## [0.52.6] - [2022-04-04]
+
+### Added
+- Discover page medium duration filter ([#7506](https://github.com/lbryio/lbry-desktop/pull/7506))
+- Keep last used collection for Add To ([#7491](https://github.com/lbryio/lbry-desktop/pull/7491))
+- Disk space functionality on mac / windows ([#7500](https://github.com/lbryio/lbry-desktop/pull/7500))
+- Enable renaming private collections ([#7519](https://github.com/lbryio/lbry-desktop/pull/7519))
+
+### Changed
+- Some upgrade modal improvements ([#7488](https://github.com/lbryio/lbry-desktop/pull/7488))
+- Updated lbry-sdk to [0.107.1](https://github.com/lbryio/lbry-sdk/releases/tag/v0.107.1)
+- New YRBL!; facelift for first run ([#7527](https://github.com/lbryio/lbry-desktop/pull/7527))
+
+### Fixed
+- Failed comment count increment ([#7510](https://github.com/lbryio/lbry-desktop/pull/7510))
+- App crash playing media on older windows versions by updating electron ([#7509](https://github.com/lbryio/lbry-desktop/pull/7509))
+- Local build failures on mac ([#7497](https://github.com/lbryio/lbry-desktop/pull/7497))
+- Language change now rerenders whole app ([#7504](https://github.com/lbryio/lbry-desktop/pull/7504))
+- Mac notarization ([#7518](https://github.com/lbryio/lbry-desktop/pull/7518))
+- Prevent crash when deleting last comment reply ([#7526](https://github.com/lbryio/lbry-desktop/pull/7526))
+
+## [0.52.5] - [2022-02-25]
+
+### Fixed
+
+- New data hosting ux ([#7493](https://github.com/lbryio/lbry-desktop/pull/7493))
+- Fix markdown guide button ([#7485](https://github.com/lbryio/lbry-desktop/pull/7485))
+
+## [0.52.4] - [2022-02-15]
+
+### Fixed
+
+- Fixed active channel ([#7481](https://github.com/lbryio/lbry-desktop/pull/7481))
+- Remove extra search button in header ([#7482](https://github.com/lbryio/lbry-desktop/pull/7482))
+
+## [0.52.3] - [2022-02-15]
+
+### Fixed
+- Fixed comment editing and pinning ([#7476](https://github.com/lbryio/lbry-desktop/pull/7476))
+- Fixed mac header ([#7479](https://github.com/lbryio/lbry-desktop/pull/7479))
+- Fixed markdown display and lbry url embedding ([#7474](https://github.com/lbryio/lbry-desktop/pull/7474))
+
+## [0.52.2] - [2022-02-11]
+
+### Added
+
+- Reenabled generating thumbs from video ([#7384](https://github.com/lbryio/lbry-desktop/pull/7409))
+- Brought in playlist drag and drop playlist reordering _odysee team!_ ([#7442](https://github.com/lbryio/lbry-desktop/pull/7442))
+- Added duration overlays to ClaimPreview component ([#7420](https://github.com/lbryio/lbry-desktop/pull/7420))
+- Some Horizontal Scroll groundwork from _odysee team!_
+- Comment Emotes and Stickers and Mentions refactors from _odysee team!_ ([#7435](https://github.com/lbryio/lbry-desktop/pull/7435))
+- Seek forward and back from _odysee team!_ () ([#7460](https://github.com/lbryio/lbry-desktop/pull/7460))
+
+### Changed
+
 - Upgraded Electron to v15 ([#7384](https://github.com/lbryio/lbry-desktop/pull/7384))
 - Performance improvements in some selectors ([#7370](https://github.com/lbryio/lbry-desktop/pull/7370))
+- More Header refactoring from _odysee team!_ ([#7441](https://github.com/lbryio/lbry-desktop/pull/7441))
+- Header refactoring from _odysee team!_ ([#7440](https://github.com/lbryio/lbry-desktop/pull/7440))
+- Data hosting ui _incomplete_ ([#7438](https://github.com/lbryio/lbry-desktop/pull/7438))
+- Updated c: control tags from _odysee team!_ ([#7433](https://github.com/lbryio/lbry-desktop/pull/7433))
+- Nav keycodes (alt+left) no longer navigate while textarea is focused ([#7458](https://github.com/lbryio/lbry-desktop/pull/7458))
+- Improved comment-server selection ui/ux ([#7455](https://github.com/lbryio/lbry-desktop/pull/7455))
+- Improved Data Hosting settings ([#7563](https://github.com/lbryio/lbry-desktop/pull/7563))
+
 ### Fixed
+
 - Several fallout bugs from recent changes
+
+## [0.52.1]
+
+### Skipped patch version
 
 ## [0.52.0] - [2021-12-31]
 
 ### Compatibility
+
 - Mac <= 10.13 (High Sierra) and Ubuntu <= 16 (Xenial) are no longer supported. If you upgrade, you will need to manually build and install your own lbrynet SDK
 
 ### Added
+
 - Direct replying to notifications _community pr!_ ([#6935](https://github.com/lbryio/lbry-desktop/pull/6935))
 - Added "Replay" option on autoplay countdown ([#6921](https://github.com/lbryio/lbry-desktop/pull/6921))
 - Added "Loop" option on Lists ([#6921](https://github.com/lbryio/lbry-desktop/pull/6921))
@@ -31,6 +133,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Setting to upgrade to alpha prerelease builds ([#7353](https://github.com/lbryio/lbry-desktop/pull/7353))
 
 ### Changed
+
 - Changing the supported language from Filipino to Tagalog _community pr!_ ([#6951](https://github.com/lbryio/lbry-desktop/pull/6951))
 - Don't show countdown to next item in list ([#6921](https://github.com/lbryio/lbry-desktop/pull/6921))
 - Changed "View List" popup option to link, so can be opened on a new tab ([#6921](https://github.com/lbryio/lbry-desktop/pull/6921))
@@ -46,6 +149,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Change file repost to modal _community pr!_ ([#7341](https://github.com/lbryio/lbry-desktop/pull/7341))
 
 ### Fixed
+
 - Clicking on the title of a floating player will take you back to the list ([#6921](https://github.com/lbryio/lbry-desktop/pull/6921))
 - Fix floating player stopping on markdown or image files ([#7073](https://github.com/lbryio/lbry-desktop/pull/7073))
 - Fix list thumbnail upload ([#7074](https://github.com/lbryio/lbry-desktop/pull/7074))
@@ -60,13 +164,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [0.51.2] - [2021-08-20]
 
 ### Added
+
 - Show currently active playing item on playlist _community pr!_ ([#6453](https://github.com/lbryio/lbry-desktop/pull/6453))
 - Add watch later to hover action for last used playlist on popup _community pr!_ ([#6274](https://github.com/lbryio/lbry-desktop/pull/6274))
-- Add confirmation on comment removal  _community pr!_ ([#6563](https://github.com/lbryio/lbry-desktop/pull/6563))
-- Show on content page if a file is part of a playlist already  _community pr!_([#6393](https://github.com/lbryio/lbry-desktop/pull/6393))
+- Add confirmation on comment removal _community pr!_ ([#6563](https://github.com/lbryio/lbry-desktop/pull/6563))
+- Show on content page if a file is part of a playlist already _community pr!_([#6393](https://github.com/lbryio/lbry-desktop/pull/6393))
 - Add filtering to playlists ([#6905](https://github.com/lbryio/lbry-desktop/pull/6905))
 
 ### Changed
+
 - Use Canonical Url for copy link ([#6500](https://github.com/lbryio/lbry-desktop/pull/6500))
 - Use better icon for copy link ([#6485](https://github.com/lbryio/lbry-desktop/pull/6485))
 - Comments load paginated ([#6390](https://github.com/lbryio/lbry-desktop/pull/6390))
@@ -77,6 +183,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Improved clickability of notification links _community pr!_ ([#6711](https://github.com/lbryio/lbry-desktop/pull/6711))
 
 ### Fixed
+
 - App now supports '#' and ':' for claimId separator ([#6496](https://github.com/lbryio/lbry-desktop/pull/6496))
 - Fix "exact match" being applied to Recommended ([#6460](https://github.com/lbryio/lbry-desktop/pull/6460))
 - Fix upload button on creator analytics _community pr!_ ([#6458](https://github.com/lbryio/lbry-desktop/pull/6458))
@@ -102,18 +209,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 ### Fixed
+
 - Enable sign up on desktop ([#6071](https://github.com/lbryio/lbry-desktop/issues/6071))
 
 ## [0.51.0] - [2021-06-26]
 
 ### Added
+
 - Private and Publishable Playlists ([#6157](https://github.com/lbryio/lbry-desktop/pull/6157))
 - Channel thumbnails in following side menu ([#6193](https://github.com/lbryio/lbry-desktop/pull/6193))
 - Web is now PWA app ([#6120](https://github.com/lbryio/lbry-desktop/pull/6120))
 - Send a tip with your comment ([#5920](https://github.com/lbryio/lbry-desktop/issues/5920))
 - Search for tags in search dropdown ([#5876](https://github.com/lbryio/lbry-desktop/issues/5876))
 - Japanese, Afrikaans, Filipino, Thai and Vietnamese language support ([#5684](https://github.com/lbryio/lbry-desktop/issues/5684))
-- Brazilian-Portuguese language support ([#5900](https://github.com/lbryio/lbry-desktop/issues/5900))  
+- Brazilian-Portuguese language support ([#5900](https://github.com/lbryio/lbry-desktop/issues/5900))
 - Highlight comments made by content owner _community pr!_ ([#5744](https://github.com/lbryio/lbry-desktop/pull/5744))
 - Ability to report infringing content directly from the application ([#5808](https://github.com/lbryio/lbry-desktop/pull/5808))
 - Re-added ability to export wallet transactions ([#5899](https://github.com/lbryio/lbry-desktop/pull/5899))

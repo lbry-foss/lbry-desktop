@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
-import { makeSelectClaimForUri, makeSelectThumbnailForUri } from 'redux/selectors/claims';
+import { makeSelectClaimForUri, selectThumbnailForUri } from 'redux/selectors/claims';
 import {
-  makeSelectNextUrlForCollectionAndUrl,
-  makeSelectPreviousUrlForCollectionAndUrl,
+  makeSelectPrevPlayableUrlFromCollectionAndUrl,
+  makeSelectNextPlayableUrlFromCollectionAndUrl,
 } from 'redux/selectors/collections';
 import * as SETTINGS from 'constants/settings';
 import * as COLLECTIONS_CONSTS from 'constants/collections';
@@ -16,7 +16,7 @@ import {
 import { selectVolume, selectMute } from 'redux/selectors/app';
 import { savePosition, clearPosition, doPlayUri, doSetPlayingUri } from 'redux/actions/content';
 import { makeSelectContentPositionForUri, makeSelectIsPlayerFloating, selectPlayingUri } from 'redux/selectors/content';
-import { makeSelectRecommendedContentForUri } from 'redux/selectors/search';
+import { selectRecommendedContentForUri } from 'redux/selectors/search';
 import VideoViewer from './view';
 import { withRouter } from 'react-router';
 import { doClaimEligiblePurchaseRewards } from 'redux/actions/rewards';
@@ -38,10 +38,10 @@ const select = (state, props) => {
   let nextRecommendedUri;
   let previousListUri;
   if (collectionId) {
-    nextRecommendedUri = makeSelectNextUrlForCollectionAndUrl(collectionId, uri)(state);
-    previousListUri = makeSelectPreviousUrlForCollectionAndUrl(collectionId, uri)(state);
+    nextRecommendedUri = makeSelectNextPlayableUrlFromCollectionAndUrl(collectionId, uri)(state);
+    previousListUri = makeSelectPrevPlayableUrlFromCollectionAndUrl(collectionId, uri)(state);
   } else {
-    const recommendedContent = makeSelectRecommendedContentForUri(uri)(state);
+    const recommendedContent = selectRecommendedContentForUri(state, uri);
     nextRecommendedUri = recommendedContent && recommendedContent[0];
   }
 
@@ -56,10 +56,10 @@ const select = (state, props) => {
     volume: selectVolume(state),
     muted: selectMute(state),
     videoPlaybackRate: makeSelectClientSetting(SETTINGS.VIDEO_PLAYBACK_RATE)(state),
-    thumbnail: makeSelectThumbnailForUri(uri)(state),
+    thumbnail: selectThumbnailForUri(state, uri),
     claim: makeSelectClaimForUri(uri)(state),
     homepageData: selectHomepageData(state),
-    shareTelemetry: IS_WEB || selectDaemonSettings(state).share_usage_data,
+    shareTelemetry: selectDaemonSettings(state).share_usage_data,
     isFloating: makeSelectIsPlayerFloating(props.location)(state),
     videoTheaterMode: makeSelectClientSetting(SETTINGS.VIDEO_THEATER_MODE)(state),
   };

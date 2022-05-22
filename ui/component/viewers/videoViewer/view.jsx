@@ -270,7 +270,11 @@ function VideoViewer(props: Props) {
   }
 
   function handlePosition(player) {
-    savePosition(uri, player.currentTime());
+    const currTime = player.currentTime();
+    const durationInSeconds = claim.value.video && claim.value.video.duration;
+    if (Number(durationInSeconds) > Number(currTime)) {
+      savePosition(uri, player.currentTime());
+    }
   }
 
   function restorePlaybackRate(player) {
@@ -280,9 +284,7 @@ function VideoViewer(props: Props) {
   }
 
   const playerReadyDependencyList = [uri];
-  if (!IS_WEB) {
-    playerReadyDependencyList.push(desktopPlayStartTime);
-  }
+  playerReadyDependencyList.push(desktopPlayStartTime);
 
   const doPlayNext = () => {
     setPlayNextUrl(true);

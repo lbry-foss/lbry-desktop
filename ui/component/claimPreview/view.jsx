@@ -6,10 +6,14 @@ import { isEmpty } from 'util/object';
 import classnames from 'classnames';
 import { isURIValid } from 'util/lbryURI';
 import * as COLLECTIONS_CONSTS from 'constants/collections';
+import { isChannelClaim } from 'util/claim';
 import { formatLbryUrlForWeb } from 'util/url';
 import { formatClaimPreviewTitle } from 'util/formatAriaLabel';
+import { formatNumber } from 'util/number';
+import Tooltip from 'component/common/tooltip';
 import FileThumbnail from 'component/fileThumbnail';
 import UriIndicator from 'component/uriIndicator';
+import PreviewOverlayProperties from 'component/previewOverlayProperties';
 import ClaimTags from 'component/claimTags';
 import SubscribeButton from 'component/subscribeButton';
 import ChannelThumbnail from 'component/channelThumbnail';
@@ -25,8 +29,8 @@ import ClaimMenuList from 'component/claimMenuList';
 import ClaimPreviewLoading from './claim-preview-loading';
 import ClaimPreviewHidden from './claim-preview-no-mature';
 import ClaimPreviewNoContent from './claim-preview-no-content';
-import CollectionEditButtons from './collection-buttons';
-
+import CollectionEditButtons from 'component/collectionEditButtons';
+import { useIsMobile } from 'effects/use-screensize';
 import AbandonedChannelPreview from 'component/abandonedChannelPreview';
 
 // preview images used on the landing page and on the channel page
@@ -48,7 +52,7 @@ type Props = {
   type: string,
   banState: { blacklisted?: boolean, filtered?: boolean, muted?: boolean, blocked?: boolean },
   hasVisitedUri: boolean,
-  channelIsBlocked: boolean,
+  blockedUris: Array<string>,
   actions: boolean | Node | string | number,
   properties: boolean | Node | string | number | ((Claim) => Node),
   empty?: Node,
@@ -67,15 +71,17 @@ type Props = {
   repostUrl?: string,
   hideMenu?: boolean,
   collectionId?: string,
-  editCollection: (string, CollectionEditParams) => void,
   isCollectionMine: boolean,
-  collectionUris: Array<Collection>,
-  collectionIndex?: number,
   disableNavigation?: boolean,
   mediaDuration?: string,
   date?: any,
   indexInContainer?: number, // The index order of this component within 'containerId'.
   channelSubCount?: number,
+  swipeLayout: boolean,
+  lang: string,
+  showEdit?: boolean,
+  dragHandleProps?: any,
+  unavailableUris?: Array<string>,
 };
 
 const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
@@ -96,7 +102,6 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
     streamingUrl,
     mediaDuration,
     // user properties
-    channelIsBlocked,
     hasVisitedUri,
     // component
     history,
@@ -128,37 +133,47 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
     hideMenu = false,
     // repostUrl,
     collectionId,
-    collectionIndex,
-    editCollection,
     isCollectionMine,
-    collectionUris,
     disableNavigation,
     indexInContainer,
     channelSubCount,
+    swipeLayout = false,
+    showEdit,
+    dragHandleProps,
+    unavailableUris,
   } = props;
+
+  const isMobile = useIsMobile();
+
   const isCollection = claim && claim.value_type === 'collection';
   const collectionClaimId = isCollection && claim && claim.claim_id;
-  const listId = collectionId || collectionClaimId || null;
+  const listId = collectionId || collectionClaimId;
   const WrapperElement = wrapperElement || 'li';
   const shouldFetch =
     claim === undefined || (claim !== null && claim.value_type === 'channel' && isEmpty(claim.meta) && !pending);
   const abandoned = !isResolvingUri && !claim;
   const isMyCollection = listId && (isCollectionMine || listId.includes('-'));
+  if (isMyCollection && claim === null && unavailableUris) unavailableUris.push(uri);
+
   const shouldHideActions = hideActions || isMyCollection || type === 'small' || type === 'tooltip';
   const canonicalUrl = claim && claim.canonical_url;
-  const lastCollectionIndex = collectionUris ? collectionUris.length - 1 : 0;
   const channelSubscribers = React.useMemo(() => {
     if (channelSubCount === undefined) {
       return <span />;
     }
-    const formattedSubCount = Number(channelSubCount).toLocaleString();
+    const formattedSubCount = formatNumber(channelSubCount, 2, true);
+    const formattedSubCountLocale = formatNumber(channelSubCount, 2, false);
     return (
-      <span className="claim-preview__channel-sub-count">
-        {channelSubCount === 1 ? __('1 Follower') : __('%formattedSubCount% Followers', { formattedSubCount })}
-      </span>
+      <div className="media__subtitle">
+        <Tooltip title={formattedSubCountLocale} followCursor placement="top">
+          <span className="claim-preview__channel-sub-count">
+            {channelSubCount === 1 ? __('1 Follower') : __('%formattedSubCount% Followers', { formattedSubCount })}
+          </span>
+        </Tooltip>
+      </div>
     );
   }, [channelSubCount]);
-  const isValid = uri && isURIValid(uri);
+  const isValid = uri && isURIValid(uri, false);
 
   // $FlowFixMe
   const isPlayable =
@@ -169,12 +184,13 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
     claim.value.stream_type &&
     // $FlowFixMe
     (claim.value.stream_type === 'audio' || claim.value.stream_type === 'video');
-  const isChannelUri = claim ? claim.value_type === 'channel' : false;
+  const isChannelUri = isChannelClaim(claim, uri);
   const signingChannel = claim && claim.signing_channel;
   const repostedChannelUri =
     claim && claim.repost_channel_url && claim.value_type === 'channel'
       ? claim.permanent_url || claim.canonical_url
       : undefined;
+  const repostedContentUri = claim && (claim.reposted_claim ? claim.reposted_claim.permanent_url : claim.permanent_url);
 
   // Get channel title ( use name as fallback )
   let channelTitle = null;
@@ -224,7 +240,7 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
     ((abandoned && !showUnresolvedClaim) || (!claimIsMine && obscureNsfw && nsfw));
 
   // This will be replaced once blocking is done at the wallet server level
-  if (claim && !claimIsMine && (banState.blacklisted || banState.filtered)) {
+  if (!shouldHide && !claimIsMine && (banState.blacklisted || banState.filtered)) {
     shouldHide = true;
   }
 
@@ -306,6 +322,7 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
         'claim-preview__wrapper--small': type === 'small',
         'claim-preview__active': active,
       })}
+      key={uri}
     >
       <>
         {!hideRepostLabel && <ClaimRepostAuthor uri={uri} />}
@@ -319,18 +336,14 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
             'claim-preview--channel': isChannelUri,
             'claim-preview--visited': !isChannelUri && !claimIsMine && hasVisitedUri,
             'claim-preview--pending': pending,
-            'claim-preview--collection-mine': isMyCollection && listId && type === 'listview',
+            'claim-preview--collection-mine': isMyCollection && showEdit,
+            'swipe-list__item': swipeLayout,
           })}
         >
-          {isMyCollection && listId && type === 'listview' && (
-            <CollectionEditButtons
-              collectionIndex={collectionIndex}
-              editCollection={editCollection}
-              listId={listId}
-              lastCollectionIndex={lastCollectionIndex}
-              claim={claim}
-            />
+          {isMyCollection && showEdit && (
+            <CollectionEditButtons uri={uri} collectionId={listId} dragHandleProps={dragHandleProps} />
           )}
+
           {isChannelUri && claim ? (
             <UriIndicator focusable={false} uri={uri} link>
               <ChannelThumbnail uri={uri} small={type === 'inline'} />
@@ -339,9 +352,9 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
             <>
               {!pending ? (
                 <NavLink aria-hidden tabIndex={-1} {...navLinkProps}>
-                  <FileThumbnail thumbnail={thumbnailUrl}>
+                  <FileThumbnail uri={uri} thumbnail={thumbnailUrl}>
                     <div className="claim-preview__hover-actions">
-                      {isPlayable && <FileWatchLaterLink focusable={false} uri={uri} />}
+                      {isPlayable && <FileWatchLaterLink focusable={false} uri={repostedContentUri} />}
                     </div>
                     {/* @if TARGET='app' */}
                     <div className="claim-preview__hover-actions">
@@ -350,10 +363,13 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
                       )}
                     </div>
                     {/* @endif */}
+                    <div className="claim-preview__file-property-overlay">
+                      <PreviewOverlayProperties uri={uri} small={type === 'small'} />
+                    </div>
                   </FileThumbnail>
                 </NavLink>
               ) : (
-                <FileThumbnail thumbnail={thumbnailUrl} />
+                <FileThumbnail uri={uri} thumbnail={thumbnailUrl} />
               )}
             </>
           )}
@@ -369,9 +385,18 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
                   </NavLink>
                 )}
               </div>
-              <ClaimPreviewSubtitle uri={uri} type={type} />
-              {(pending || !!reflectingProgress) && <PublishPending uri={uri} />}
-              {channelSubscribers}
+              <div className="claim-tile__info" uri={uri}>
+                {!isChannelUri && signingChannel && (
+                  <div className="claim-preview__channel-staked">
+                    <UriIndicator focusable={false} uri={uri} link hideAnonymous>
+                      <ChannelThumbnail uri={signingChannel.permanent_url} xsmall />
+                    </UriIndicator>
+                  </div>
+                )}
+                <ClaimPreviewSubtitle uri={uri} type={type} />
+                {(pending || !!reflectingProgress) && <PublishPending uri={uri} />}
+                {channelSubscribers}
+              </div>
             </div>
             {type !== 'small' && (
               <div className="claim-preview__actions">
@@ -382,13 +407,7 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
                       actions
                     ) : (
                       <div className="claim-preview__primary-actions">
-                        {!isChannelUri && signingChannel && (
-                          <div className="claim-preview__channel-staked">
-                            <ChannelThumbnail uri={signingChannel.permanent_url} xsmall />
-                          </div>
-                        )}
-
-                        {isChannelUri && !channelIsBlocked && !claimIsMine && (
+                        {isChannelUri && !banState.muted && !claimIsMine && (
                           <SubscribeButton
                             uri={repostedChannelUri || (uri.startsWith('lbry://') ? uri : `lbry://${uri}`)}
                           />
@@ -401,13 +420,11 @@ const ClaimPreview = forwardRef<any, {}>((props: Props, ref: any) => {
                 )}
                 {claim && (
                   <React.Fragment>
-                    {typeof properties === 'function' ? (
-                      properties(claim)
-                    ) : properties !== undefined ? (
-                      properties
-                    ) : (
-                      <ClaimTags uri={uri} type={type} />
-                    )}
+                    {typeof properties === 'function'
+                      ? properties(claim)
+                      : properties !== undefined
+                      ? properties
+                      : !isMobile && <ClaimTags uri={uri} type={type} />}
                   </React.Fragment>
                 )}
               </div>

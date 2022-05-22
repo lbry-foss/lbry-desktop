@@ -14,9 +14,10 @@
 @import 'component/button';
 @import 'component/card';
 @import 'component/channel';
-@import 'component/channel-mention';
+@import 'component/_textarea-suggestions';
 @import 'component/claim-list';
 @import 'component/collection';
+@import 'component/color-picker';
 @import 'component/comments';
 @import 'component/content';
 @import 'component/dat-gui';
@@ -26,6 +27,7 @@
 @import 'component/file-list';
 @import 'component/file-properties';
 @import 'component/file-render';
+@import 'component/file-thumbnail';
 @import 'component/footer';
 @import 'component/form-field';
 @import 'component/header';
@@ -66,3 +68,8 @@
 @import 'component/empty';
 @import 'component/stripe-card';
 @import 'component/wallet-tip-send';
+@import 'component/swipe-list';
+@import 'component/utils';
+@import 'component/settings';
+@import 'component/embed-player';
+@import 'component/first-run';

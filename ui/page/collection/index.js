@@ -3,8 +3,8 @@ import { connect } from 'react-redux';
 import { withRouter } from 'react-router-dom';
 import CollectionPage from './view';
 import {
-  makeSelectTitleForUri,
-  makeSelectThumbnailForUri,
+  selectTitleForUri,
+  getThumbnailFromClaim,
   selectClaimIsMine,
   makeSelectClaimIsPending,
   makeSelectClaimForClaimId,
@@ -38,8 +38,8 @@ const select = (state, props) => {
     collectionUrls: makeSelectUrlsForCollectionId(collectionId)(state),
     collectionCount: makeSelectCountForCollectionId(collectionId)(state),
     isResolvingCollection: makeSelectIsResolvingCollectionForId(collectionId)(state),
-    title: makeSelectTitleForUri(uri)(state),
-    thumbnail: makeSelectThumbnailForUri(uri)(state),
+    title: selectTitleForUri(state, uri),
+    thumbnail: getThumbnailFromClaim(claim),
     isMyClaim: selectClaimIsMine(state, claim), // or collection is mine?
     isMyCollection: makeSelectCollectionIsMine(collectionId)(state),
     claimIsPending: makeSelectClaimIsPending(uri)(state),
@@ -54,6 +54,7 @@ const perform = (dispatch) => ({
   fetchCollectionItems: (claimId, cb) => dispatch(doFetchItemsInCollection({ collectionId: claimId }, cb)), // if this collection is not resolved, resolve it
   deleteCollection: (id, colKey) => dispatch(doCollectionDelete(id, colKey)),
   editCollection: (id, params) => dispatch(doCollectionEdit(id, params)),
+  renameCollection: (id, name) => dispatch(doCollectionEdit(id, { name })),
 });
 
 export default withRouter(connect(select, perform)(CollectionPage));

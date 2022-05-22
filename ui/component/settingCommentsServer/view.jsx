@@ -1,70 +1,100 @@
 // @flow
-import { COMMENT_SERVER_NAME } from 'config';
+import { COMMENT_SERVER_API, COMMENT_SERVER_NAME } from 'config';
 import React from 'react';
 import Comments from 'comments';
-import { FormField } from 'component/common/form';
-
-const DEBOUNCE_TEXT_INPUT_MS = 500;
+import ItemInputRow from './internal/input-radio-panel-addCommentServer';
+import Button from 'component/button';
+import { FormField } from 'component/common/form-components/form-field';
 
 type Props = {
   customServerEnabled: boolean,
   customServerUrl: string,
   setCustomServerEnabled: (boolean) => void,
   setCustomServerUrl: (string) => void,
+  setCustomServers: (Array<CommentServerDetails>) => void,
+  customCommentServers: Array<CommentServerDetails>,
 };
-
+const defaultServer = { name: COMMENT_SERVER_NAME, url: COMMENT_SERVER_API };
 function SettingCommentsServer(props: Props) {
-  const { customServerEnabled, customServerUrl, setCustomServerEnabled, setCustomServerUrl } = props;
-  const [url, setUrl] = React.useState(customServerUrl);
+  const {
+    customServerEnabled,
+    customServerUrl,
+    setCustomServerEnabled,
+    setCustomServerUrl,
+    customCommentServers,
+    setCustomServers,
+  } = props;
+  const [addServer, setAddServer] = React.useState(false);
 
+  const customServersString = JSON.stringify(customCommentServers);
+
+  // "migrate" to make sure any currently set custom server is in saved list
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      Comments.setServerUrl(customServerEnabled ? url : undefined);
-      if (url !== customServerUrl) {
-        setCustomServerUrl(url);
-      }
-    }, DEBOUNCE_TEXT_INPUT_MS);
+    // const servers = JSON.parse(customServersString);
+    // if customServerUrl is not in servers, make sure it is.
+  }, [customServerUrl, customServersString, setCustomServers]);
 
-    return () => clearTimeout(timer);
-  }, [url, customServerUrl, customServerEnabled, setCustomServerUrl]);
+  const handleSelectServer = (serverItem: CommentServerDetails) => {
+    if (serverItem.url !== COMMENT_SERVER_API) {
+      Comments.setServerUrl(serverItem.url);
+      setCustomServerUrl(serverItem.url);
+      setCustomServerEnabled(true);
+    } else {
+      Comments.setServerUrl(undefined);
+      setCustomServerEnabled(false);
+    }
+  };
+
+  const handleAddServer = (serverItem: CommentServerDetails) => {
+    const newCustomServers = customCommentServers.slice();
+    newCustomServers.push(serverItem);
+    setCustomServers(newCustomServers);
+    handleSelectServer(serverItem);
+    setAddServer(false);
+  };
+
+  const handleRemoveServer = (serverItem: CommentServerDetails) => {
+    handleSelectServer(defaultServer);
+    const newCustomServers = customCommentServers.slice().filter((server) => {
+      return server.url !== serverItem.url;
+    });
+    setCustomServers(newCustomServers);
+  };
+
+  const commentServerLabel = (serverDetails, onRemove) => (
+    <span className={'compound-label'}>
+      <span>{serverDetails.name}</span>
+      <span className="compound-label__details">{serverDetails.url}</span>
+      {onRemove && <Button button={'inverse'} label={__('Remove')} onClick={() => onRemove(serverDetails)} />}
+    </span>
+  );
+  const commentServerRadio = (customServerEnabled, customServerUrl, onClick, onRemove, serverDetails) => (
+    <FormField
+      type="radio"
+      checked={(!customServerEnabled && !onRemove) || (customServerEnabled && customServerUrl === serverDetails.url)}
+      onClick={() => onClick(serverDetails)}
+      label={commentServerLabel(serverDetails, onRemove)}
+      name={`${serverDetails.name}${serverDetails.url}`}
+      key={`${serverDetails.name}${serverDetails.url}`}
+    />
+  );
 
   return (
     <React.Fragment>
-      <fieldset-section>
-        <FormField
-          type="radio"
-          name="use_default_comments_server"
-          label={__('Default comments server (%name%)', { name: COMMENT_SERVER_NAME })}
-          checked={!customServerEnabled}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setCustomServerEnabled(false);
-            }
-          }}
-        />
-        <FormField
-          type="radio"
-          name="use_custom_comments_server"
-          label={__('Custom comments server')}
-          checked={customServerEnabled}
-          onChange={(e) => {
-            if (e.target.checked) {
-              setCustomServerEnabled(true);
-            }
-          }}
-        />
-
-        {customServerEnabled && (
-          <div className="section__body">
-            <FormField
-              type="text"
-              placeholder="https://comment.mysite.com"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-            />
+      <div className={'fieldset-section'}>
+        {commentServerRadio(customServerEnabled, customServerUrl, handleSelectServer, null, defaultServer)}
+        {customCommentServers.map((server) =>
+          commentServerRadio(customServerEnabled, customServerUrl, handleSelectServer, handleRemoveServer, server)
+        )}
+      </div>
+      <div className={'fieldset-section'}>
+        {!addServer && (
+          <div className="section__actions">
+            <Button type="button" button="inverse" onClick={() => setAddServer(true)} label={__('Add A Server')} />
           </div>
         )}
-      </fieldset-section>
+        {addServer && <ItemInputRow update={handleAddServer} onCancel={setAddServer} />}
+      </div>
     </React.Fragment>
   );
 }

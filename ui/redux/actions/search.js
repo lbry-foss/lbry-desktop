@@ -12,7 +12,7 @@ import { getRecommendationSearchOptions } from 'util/search';
 import { SEARCH_SERVER_API } from 'config';
 
 type Dispatch = (action: any) => any;
-type GetState = () => { search: SearchState };
+type GetState = () => { claims: any, search: SearchState };
 
 type SearchOptions = {
   size?: number,
@@ -127,6 +127,13 @@ export const doUpdateSearchOptions = (newOptions: SearchOptions, additionalOptio
     // After updating, perform a search with the new options
     dispatch(doSearch(searchValue, additionalOptions));
   }
+};
+
+export const doSetMentionSearchResults = (query: string, uris: Array<string>) => (dispatch: Dispatch) => {
+  dispatch({
+    type: ACTIONS.SET_MENTION_SEARCH_RESULTS,
+    data: { query, uris },
+  });
 };
 
 export const doFetchRecommendedContent = (uri: string) => (dispatch: Dispatch, getState: GetState) => {
