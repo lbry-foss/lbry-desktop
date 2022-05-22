@@ -22,15 +22,8 @@ type Props = {
 };
 
 export default React.memo<Props>(function RecommendedContent(props: Props) {
-  const {
-    uri,
-    doFetchRecommendedContent,
-    recommendedContentUris,
-    nextRecommendedUri,
-    isSearching,
-    claim,
-    claimId,
-  } = props;
+  const { uri, doFetchRecommendedContent, recommendedContentUris, nextRecommendedUri, isSearching, claim, claimId } =
+    props;
   const [viewMode, setViewMode] = React.useState(VIEW_ALL_RELATED);
   const signingChannel = claim && claim.signing_channel;
   const channelName = signingChannel ? signingChannel.name : null;
@@ -68,18 +61,18 @@ export default React.memo<Props>(function RecommendedContent(props: Props) {
       title={__('Related')}
       titleActions={
         signingChannel && (
-          <div className="recommended-content__toggles">
+          <div className="recommended-content__bubble">
             <Button
-              className={classnames('button-toggle', {
-                'button-toggle--active': viewMode === VIEW_ALL_RELATED,
+              className={classnames('button-bubble', {
+                'button-bubble--active': viewMode === VIEW_ALL_RELATED,
               })}
-              label={__('All')}
+              label={__('Related')}
               onClick={() => setViewMode(VIEW_ALL_RELATED)}
             />
 
             <Button
-              className={classnames('button-toggle', {
-                'button-toggle--active': viewMode === VIEW_MORE_FROM,
+              className={classnames('button-bubble', {
+                'button-bubble--active': viewMode === VIEW_MORE_FROM,
               })}
               label={__('More from %claim_name%', { claim_name: channelName })}
               onClick={() => setViewMode(VIEW_MORE_FROM)}

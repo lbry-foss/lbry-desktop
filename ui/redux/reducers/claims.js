@@ -61,6 +61,8 @@ type State = {
   isCheckingNameForPublish: boolean,
   checkingPending: boolean,
   checkingReflecting: boolean,
+  isFetchingAllClaimListMine: boolean,
+  allClaimListMine: Array<ChannelClaim | Claim>,
 };
 
 const reducers = {};
@@ -109,6 +111,8 @@ const defaultState = {
   isCheckingNameForPublish: false,
   checkingPending: false,
   checkingReflecting: false,
+  isFetchingAllClaimListMine: false,
+  allClaimListMine: [],
 };
 
 function handleClaimAction(state: State, action: any): State {
@@ -272,6 +276,17 @@ reducers[ACTIONS.FETCH_CLAIM_LIST_MINE_COMPLETED] = (state: State, action: any):
     myClaimsPageTotalResults: totalItems,
   });
 };
+
+reducers[ACTIONS.FETCH_ALL_CLAIM_LIST_MINE_STARTED] = (state: State): State =>
+  Object.assign({}, state, {
+    isFetchingAllClaimListMine: true,
+  });
+
+reducers[ACTIONS.FETCH_ALL_CLAIM_LIST_MINE_COMPLETED] = (state: State, action: any): State =>
+  Object.assign({}, state, {
+    isFetchingAllClaimListMine: false,
+    allClaimListMine: action.data.result.items,
+  });
 
 reducers[ACTIONS.FETCH_CHANNEL_LIST_STARTED] = (state: State): State =>
   Object.assign({}, state, { fetchingMyChannels: true });
@@ -503,10 +518,8 @@ reducers[ACTIONS.UPDATE_PENDING_CLAIMS] = (state: State, action: any): State => 
 };
 
 reducers[ACTIONS.UPDATE_CONFIRMED_CLAIMS] = (state: State, action: any): State => {
-  const {
-    claims: confirmedClaims,
-    pending: pendingClaims,
-  }: { claims: Array<Claim>, pending: { [string]: Claim } } = action.data;
+  const { claims: confirmedClaims, pending: pendingClaims }: { claims: Array<Claim>, pending: { [string]: Claim } } =
+    action.data;
   const byId = Object.assign({}, state.byId);
   const byUri = Object.assign({}, state.claimsByUri);
   //
@@ -532,16 +545,24 @@ reducers[ACTIONS.ABANDON_CLAIM_SUCCEEDED] = (state: State, action: any): State =
   const { claimId }: { claimId: string } = action.data;
   const byId = Object.assign({}, state.byId);
   const newMyClaims = state.myClaims ? state.myClaims.slice() : [];
+  let myClaimsPageResults = null;
   const newMyChannelClaims = state.myChannelClaims ? state.myChannelClaims.slice() : [];
   const claimsByUri = Object.assign({}, state.claimsByUri);
   const abandoningById = Object.assign({}, state.abandoningById);
   const newMyCollectionClaims = state.myCollectionClaims ? state.myCollectionClaims.slice() : [];
 
+  let abandonedUris = [];
+
   Object.keys(claimsByUri).forEach((uri) => {
     if (claimsByUri[uri] === claimId) {
+      abandonedUris.push(uri);
       delete claimsByUri[uri];
     }
   });
+
+  if (abandonedUris.length > 0 && state.myClaimsPageResults) {
+    myClaimsPageResults = state.myClaimsPageResults.filter((uri) => !abandonedUris.includes(uri));
+  }
 
   if (abandoningById[claimId]) {
     delete abandoningById[claimId];
@@ -560,6 +581,7 @@ reducers[ACTIONS.ABANDON_CLAIM_SUCCEEDED] = (state: State, action: any): State =
     byId,
     claimsByUri,
     abandoningById,
+    myClaimsPageResults: myClaimsPageResults || state.myClaimsPageResults,
   });
 };
 

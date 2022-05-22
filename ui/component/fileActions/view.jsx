@@ -27,27 +27,15 @@ type Props = {
   fileInfo: FileListItem,
   costInfo: ?{ cost: number },
   renderMode: string,
-  myChannels: ?Array<ChannelClaim>,
+  hasChannels: boolean,
   hideRepost?: boolean,
-  reactionsDisabled: boolean,
   download: (string) => void,
   streamingUrl: ?string,
 };
 
 function FileActions(props: Props) {
-  const {
-    fileInfo,
-    uri,
-    openModal,
-    claimIsMine,
-    claim,
-    costInfo,
-    renderMode,
-    prepareEdit,
-    myChannels,
-    hideRepost,
-    reactionsDisabled,
-  } = props;
+  const { fileInfo, uri, openModal, claimIsMine, claim, costInfo, renderMode, prepareEdit, hasChannels, hideRepost } =
+    props;
   const {
     push,
     location: { search },
@@ -55,7 +43,6 @@ function FileActions(props: Props) {
   const isMobile = useIsMobile();
   const webShareable = costInfo && costInfo.cost === 0 && RENDER_MODES.WEB_SHAREABLE_MODES.includes(renderMode);
   const showDelete = claimIsMine || (fileInfo && (fileInfo.written_bytes > 0 || fileInfo.blobs_completed > 0));
-  const hasChannels = myChannels && myChannels.length > 0;
   const claimId = claim && claim.claim_id;
   const { signing_channel: signingChannel } = claim;
   const channelName = signingChannel && signingChannel.name;
@@ -81,12 +68,10 @@ function FileActions(props: Props) {
 
   const lhsSection = (
     <>
-      {ENABLE_FILE_REACTIONS && !reactionsDisabled && <FileReactions uri={uri} />}
+      {ENABLE_FILE_REACTIONS && <FileReactions uri={uri} />}
       <ClaimSupportButton uri={uri} fileAction />
       <ClaimCollectionAddButton uri={uri} fileAction />
-      {!hideRepost && (
-        <ClaimRepostButton uri={uri} claim={claim} hasChannels={hasChannels} />
-      )}
+      {!hideRepost && <ClaimRepostButton uri={uri} claim={claim} hasChannels={hasChannels} />}
       <Button
         className="button--file-action"
         icon={ICONS.SHARE}
@@ -123,7 +108,7 @@ function FileActions(props: Props) {
       {!claimIsMine && (
         <Menu>
           <MenuButton
-            className="button--file-action"
+            className="button--file-action--menu"
             onClick={(e) => {
               e.stopPropagation();
               e.preventDefault();

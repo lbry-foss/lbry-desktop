@@ -45,6 +45,7 @@ export type AppState = {
   interestedInYoutubeSync: boolean,
   activeChannel: ?string,
   incognito: boolean,
+  diskSpace: ?DiskSpace,
 };
 
 const defaultState: AppState = {
@@ -83,6 +84,7 @@ const defaultState: AppState = {
   interestedInYoutubeSync: false,
   activeChannel: undefined,
   incognito: false,
+  diskSpace: null,
 };
 
 // @@router comes from react-router
@@ -317,7 +319,14 @@ reducers[ACTIONS.SET_INCOGNITO] = (state, action) => {
   };
 };
 
-reducers[ACTIONS.USER_STATE_POPULATE] = (state, action) => {
+reducers[ACTIONS.DISK_SPACE] = (state, action) => {
+  return {
+    ...state,
+    diskSpace: action.data,
+  };
+};
+
+reducers[ACTIONS.SYNC_STATE_POPULATE] = (state, action) => {
   const { welcomeVersion, allowAnalytics } = action.data;
   return {
     ...state,

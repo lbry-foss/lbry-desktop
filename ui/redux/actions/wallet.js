@@ -1,5 +1,6 @@
 import * as ACTIONS from 'constants/action_types';
 import Lbry from 'lbry';
+import { Lbryio } from 'lbryinc';
 import { doToast } from 'redux/actions/notifications';
 import {
   selectBalance,
@@ -12,7 +13,6 @@ import {
 import { creditsToString } from 'util/format-credits';
 import { selectMyClaimsRaw, selectClaimsById } from 'redux/selectors/claims';
 import { doFetchChannelListMine, doFetchClaimListMine, doClaimSearch } from 'redux/actions/claims';
-
 const FIFTEEN_SECONDS = 15000;
 let walletBalancePromise = null;
 
@@ -80,7 +80,7 @@ export function doFetchTransactions(page = 1, pageSize = 999999) {
 
 export function doFetchTxoPage() {
   return (dispatch, getState) => {
-    const fetchId = Math.random().toString(36).substr(2, 9);
+    const fetchId = Math.random().toString(36).slice(2, 11);
 
     dispatch({
       type: ACTIONS.FETCH_TXO_PAGE_STARTED,
@@ -525,7 +525,7 @@ export function doSupportAbandonForClaim(claimId, claimType, keep, preview) {
 }
 
 export function doWalletReconnect() {
-  return (dispatch) => {
+  return (dispatch, getState) => {
     dispatch({
       type: ACTIONS.WALLET_RESTART,
     });
@@ -533,16 +533,23 @@ export function doWalletReconnect() {
     // this basically returns null when it's done. :(
     // might be good to  dispatch ACTIONS.WALLET_RESTARTED
     const walletTimeout = setTimeout(() => {
-      failed = true;
-      dispatch({
-        type: ACTIONS.WALLET_RESTART_COMPLETED,
-      });
-      dispatch(
-        doToast({
-          message: __('Your servers were not available. Check your url and port, or switch back to defaults.'),
-          isError: true,
-        })
-      );
+      const state = getState();
+      const { settings } = state;
+      const { daemonStatus } = settings || {};
+      const { wallet } = daemonStatus || {};
+      const availableServers = wallet.available_servers;
+      if (!availableServers) {
+        failed = true;
+        dispatch({
+          type: ACTIONS.WALLET_RESTART_COMPLETED,
+        });
+        dispatch(
+          doToast({
+            message: __('Your servers were not available. Check your url and port, or switch back to defaults.'),
+            isError: true,
+          })
+        );
+      }
     }, FIFTEEN_SECONDS);
     Lbry.wallet_reconnect().then(() => {
       clearTimeout(walletTimeout);
@@ -700,3 +707,46 @@ export const doCheckPendingTxs = () => (dispatch, getState) => {
     checkTxList();
   }, 30000);
 };
+
+// don't need hthis
+export const doSendCashTip =
+  (tipParams, anonymous, userParams, claimId, stripeEnvironment, successCallback) => (dispatch) => {
+    Lbryio.call(
+      'customer',
+      'tip',
+      {
+        // round to fix issues with floating point numbers
+        amount: Math.round(100 * tipParams.tipAmount), // convert from dollars to cents
+        creator_channel_name: tipParams.tipChannelName, // creator_channel_name
+        creator_channel_claim_id: tipParams.channelClaimId,
+        tipper_channel_name: anonymous ? '' : userParams.activeChannelName,
+        tipper_channel_claim_id: anonymous ? '' : userParams.activeChannelId,
+        currency: 'USD',
+        anonymous: anonymous,
+        source_claim_id: claimId,
+        environment: stripeEnvironment,
+      },
+      'post'
+    )
+      .then((customerTipResponse) => {
+        dispatch(
+          doToast({
+            message: __("You sent $%tipAmount% as a tip to %tipChannelName%, I'm sure they appreciate it!", {
+              tipAmount: tipParams.tipAmount,
+              tipChannelName: tipParams.tipChannelName,
+            }),
+          })
+        );
+
+        if (successCallback) successCallback(customerTipResponse);
+      })
+      .catch((error) => {
+        // show error message from Stripe if one exists (being passed from backend by Beamer's API currently)
+        dispatch(
+          doToast({
+            message: error.message || __('Sorry, there was an error in processing your payment!'),
+            isError: true,
+          })
+        );
+      });
+  };

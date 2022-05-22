@@ -20,6 +20,7 @@ import {
   doHideModal,
   doToggle3PAnalytics,
   doUpdateDownloadProgress,
+  doNotifyUpdateAvailable,
 } from 'redux/actions/app';
 import { isURIValid } from 'util/lbryURI';
 import { setSearchApi } from 'redux/actions/search';
@@ -91,6 +92,18 @@ rewards.setCallback('claimRewardSuccess', (reward) => {
   }
 });
 
+ipcRenderer.on('send-disk-space', (event, result) => {
+  if (result.error) {
+    console.log(`disk space error: ${result.error}`);
+  } else {
+    app.store.dispatch({
+      type: ACTIONS.DISK_SPACE,
+      data: result.diskSpace,
+    });
+  }
+});
+
+ipcRenderer.send('get-disk-space');
 // @if TARGET='app'
 ipcRenderer.on('open-uri-requested', (event, url, newSession) => {
   function handleError() {
@@ -115,6 +128,10 @@ ipcRenderer.on('open-uri-requested', (event, url, newSession) => {
 
   // If nothing redirected before here the url must be messed up
   handleError();
+});
+
+autoUpdater.on('update-available', (e) => {
+  app.store.dispatch(doNotifyUpdateAvailable(e));
 });
 
 ipcRenderer.on('download-progress-update', (e, p) => {
@@ -185,7 +202,7 @@ document.addEventListener('drop', (event) => {
 
 function AppWrapper() {
   // Splash screen and sdk setup not needed on web
-  const [readyToLaunch, setReadyToLaunch] = useState(IS_WEB);
+  const [readyToLaunch, setReadyToLaunch] = useState(false);
   const [persistDone, setPersistDone] = useState(false);
 
   useEffect(() => {

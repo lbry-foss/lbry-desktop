@@ -23,12 +23,12 @@ export default handleActions(
         blockedChannels: newBlockedChannels,
       };
     },
-    [ACTIONS.USER_STATE_POPULATE]: (state: BlocklistState, action: { data: { blocked: ?Array<string> } }) => {
+    [ACTIONS.SYNC_STATE_POPULATE]: (state: BlocklistState, action: { data: { blocked: ?Array<string> } }) => {
       const { blocked } = action.data;
       const sanitizedBlocked = blocked && blocked.filter((e) => typeof e === 'string');
       return {
         ...state,
-        blockedChannels: sanitizedBlocked && sanitizedBlocked.length ? sanitizedBlocked : state.blockedChannels,
+        blockedChannels: sanitizedBlocked || state.blockedChannels,
       };
     },
   },

@@ -14,9 +14,10 @@ import { doAlertWaitingForSync, doGetAndPopulatePreferences } from 'redux/action
 import { selectPrefsReady } from 'redux/selectors/sync';
 import { Lbryio } from 'lbryinc';
 import { getDefaultLanguage } from 'util/default-languages';
+import { getSubsetFromKeysArray } from 'util/sync-settings';
 
 const { DEFAULT_LANGUAGE } = require('config');
-const { SDK_SYNC_KEYS } = SHARED_PREFERENCES;
+const { SDK_SYNC_KEYS, CLIENT_SYNC_KEYS } = SHARED_PREFERENCES;
 
 export const IS_MAC = process.platform === 'darwin';
 const UPDATE_IS_NIGHT_INTERVAL = 5 * 60 * 1000;
@@ -125,14 +126,15 @@ export function doSetDaemonSetting(key, value, doNotDispatch = false) {
         // todo: add sdk reloadsettings() (or it happens automagically?)
       }
     });
-    Lbry.settings_get().then((settings) => {
-      analytics.toggleInternal(settings.share_usage_data);
-      dispatch({
-        type: ACTIONS.DAEMON_SETTINGS_RECEIVED,
-        data: {
-          settings,
-        },
-      });
+    dispatch(doFetchDaemonSettings());
+  };
+}
+
+export function doCleanBlobs() {
+  return (dispatch) => {
+    Lbry.blob_clean().then(() => {
+      dispatch(doFetchDaemonSettings());
+      return 'done';
     });
   };
 }
@@ -230,10 +232,18 @@ export function doSetWalletSyncPreference(pref) {
 }
 
 export function doPushSettingsToPrefs() {
-  return (dispatch) => {
+  return (dispatch, getState) => {
+    const state = getState();
+    const {
+      settings: { clientSettings, sharedPreferences },
+    } = state;
+    const selectedClientSettings = getSubsetFromKeysArray(clientSettings, CLIENT_SYNC_KEYS);
+    const newSharedPreferences = { ...sharedPreferences, ...selectedClientSettings };
+
     return new Promise((resolve, reject) => {
       dispatch({
         type: ACTIONS.SYNC_CLIENT_SETTINGS,
+        data: newSharedPreferences,
       });
       resolve();
     });
@@ -245,9 +255,7 @@ export function doEnterSettingsPage() {
     const state = getState();
     const syncEnabled = makeSelectClientSetting(SETTINGS.ENABLE_SYNC)(state);
     const hasVerifiedEmail = state.user && state.user.user && state.user.user.has_verified_email;
-    if (IS_WEB && !hasVerifiedEmail) {
-      return;
-    }
+
     dispatch(doSyncUnsubscribe());
     if (syncEnabled && hasVerifiedEmail) {
       await dispatch(doSyncLoop(true));
@@ -259,12 +267,7 @@ export function doEnterSettingsPage() {
 }
 
 export function doExitSettingsPage() {
-  return (dispatch, getState) => {
-    const state = getState();
-    const hasVerifiedEmail = state.user && state.user.user && state.user.user.has_verified_email;
-    if (IS_WEB && !hasVerifiedEmail) {
-      return;
-    }
+  return (dispatch) => {
     dispatch(doSetSyncLock(false));
     dispatch(doPushSettingsToPrefs());
     // syncLoop is restarted in store.js sharedStateCB if necessary
@@ -314,7 +317,7 @@ export function doSetLanguage(language) {
     const { settings } = getState();
     const { daemonSettings } = settings;
     const { share_usage_data: shareSetting } = daemonSettings;
-    const isSharingData = shareSetting || IS_WEB;
+    const isSharingData = shareSetting;
     let languageSetting;
     if (language === getDefaultLanguage()) {
       languageSetting = null;

@@ -89,7 +89,7 @@ export default handleActions(
       newCommentIds.unshift(comment.comment_id);
       byId[claimId] = newCommentIds;
 
-      if (totalCommentsById[claimId]) {
+      if (totalCommentsById.hasOwnProperty(claimId)) {
         totalCommentsById[claimId] += 1;
       }
 
@@ -229,17 +229,8 @@ export default handleActions(
     },
 
     [ACTIONS.COMMENT_LIST_COMPLETED]: (state: CommentsState, action: any) => {
-      const {
-        comments,
-        parentId,
-        totalItems,
-        totalFilteredItems,
-        totalPages,
-        claimId,
-        uri,
-        disabled,
-        creatorClaimId,
-      } = action.data;
+      const { comments, parentId, totalItems, totalFilteredItems, totalPages, claimId, uri, disabled, creatorClaimId } =
+        action.data;
 
       const commentById = Object.assign({}, state.commentById);
       const byId = Object.assign({}, state.byId);
@@ -562,7 +553,7 @@ export default handleActions(
         }
       }
 
-      if (totalCommentsById[claimId]) {
+      if (totalCommentsById.hasOwnProperty(claimId)) {
         totalCommentsById[claimId] = Math.max(0, totalCommentsById[claimId] - 1);
       }
 

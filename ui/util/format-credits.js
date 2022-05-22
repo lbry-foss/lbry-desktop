@@ -1,39 +1,30 @@
-function numberWithCommas(x) {
-  var parts = x.toString().split('.');
-  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  return parts.join('.');
-}
+import { getFormatter } from './intlNumberFormat';
 
 export function formatCredits(amount, precision, shortFormat = false) {
-  let actualAmount = parseFloat(amount);
-  let actualPrecision = parseFloat(precision);
-  let suffix = '';
+  const language = localStorage.getItem('language') || undefined;
+  const actualAmount = Number(amount);
+  const safePrecision = Math.min(20, Math.max(1, precision || 0));
 
   if (Number.isNaN(actualAmount) || actualAmount === 0) return '0';
 
-  if (actualAmount >= 1000000) {
-    if (precision <= 7) {
-      if (shortFormat) {
-        actualAmount = actualAmount / 1000000;
-        suffix = 'M';
-      } else {
-        actualPrecision -= 7;
-      }
-    }
-  } else if (actualAmount >= 1000) {
-    if (precision <= 4) {
-      if (shortFormat) {
-        actualAmount = actualAmount / 1000;
-        suffix = 'K';
-      } else {
-        actualPrecision -= 4;
-      }
-    }
+  if (shortFormat) {
+    const formatter = getFormatter(language, {
+      minimumFractionDigits: safePrecision,
+      maximumFractionDigits: safePrecision,
+      roundingIncrement: 5,
+      // Display suffix (M, K, etc.)
+      notation: 'compact',
+      compactDisplay: 'short',
+    });
+    return formatter.format(actualAmount);
   }
 
-  return (
-    numberWithCommas(actualAmount.toFixed(actualPrecision >= 0 ? actualPrecision : 1).replace(/\.*0+$/, '')) + suffix
-  );
+  const formatter = getFormatter(language, {
+    minimumFractionDigits: safePrecision,
+    maximumFractionDigits: safePrecision,
+    roundingIncrement: 5,
+  });
+  return formatter.format(actualAmount);
 }
 
 export function formatFullPrice(amount, precision = 1) {

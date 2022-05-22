@@ -67,19 +67,16 @@ export const icons = {
         viewBox="0 0 24 24"
         width={size}
         height={size}
-        fill="none"
+        fill="black"
         stroke={color}
         strokeWidth="0"
         strokeLinecap="round"
         strokeLinejoin="round"
         {...rest}
       >
-        <path d="M1.03125 14.1562V9.84375L12 0L22.9688 9.84375V14.1562L12 24L1.03125 14.1562Z" fill="black" />
-        <path d="M8.925 10.3688L3.99375 14.8125L7.70625 18.15L12.6375 13.7063L8.925 10.3688Z" fill="black" />
-        <path
-          d="M8.925 10.3688L15.1312 4.80005L12 1.98755L2.60625 10.425V13.575L3.99375 14.8125L8.925 10.3688Z"
-          fill="black"
-        />
+        <path d="M1.03125 14.1562V9.84375L12 0L22.9688 9.84375V14.1562L12 24L1.03125 14.1562Z" />
+        <path d="M8.925 10.3688L3.99375 14.8125L7.70625 18.15L12.6375 13.7063L8.925 10.3688Z" />
+        <path d="M8.925 10.3688L15.1312 4.80005L12 1.98755L2.60625 10.425V13.575L3.99375 14.8125L8.925 10.3688Z" />
         <path
           d="M8.925 10.3688L3.99375 14.8125L7.70625 18.15L12.6375 13.7063L8.925 10.3688Z"
           fill={`url(#paint0_linear${randomId})`}
@@ -172,7 +169,7 @@ export const icons = {
     </g>
   ),
   [ICONS.HOME]: buildIcon(
-    <g strokeWidth="2" fill="none" fillRule="evenodd" strokeLinecap="round" strokeLinejoin="round">
+    <g fill="none" fillRule="evenodd" strokeLinecap="round" strokeLinejoin="round">
       <path d="M1, 11 L12, 2 C12, 2 22.9999989, 11.0000005 23, 11" />
       <path d="M3, 10 C3, 10 3, 10.4453982 3, 10.9968336 L3, 20.0170446 C3, 20.5675806 3.43788135, 21.0138782 4.00292933, 21.0138781 L8.99707067, 21.0138779 C9.55097324, 21.0138779 10, 20.5751284 10, 20.0089602 L10, 15.0049177 C10, 14.449917 10.4433532, 14 11.0093689, 14 L12.9906311, 14 C13.5480902, 14 14, 14.4387495 14, 15.0049177 L14, 20.0089602 C14, 20.5639609 14.4378817, 21.0138779 15.0029302, 21.0138779 L19.9970758, 21.0138781 C20.5509789, 21.0138782 21.000006, 20.56848 21.000006, 20.0170446 L21.0000057, 10" />
     </g>
@@ -198,9 +195,25 @@ export const icons = {
       <path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29" />
     </g>
   ),
-  [ICONS.SUBSCRIBE]: buildIcon(
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  ),
+  [ICONS.SUBSCRIBE]: (props: IconProps) => {
+    const { size = 24, color = 'currentColor', ...otherProps } = props;
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        fill={color}
+        stroke={'#FFFFFF'}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...otherProps}
+      >
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+    );
+  },
   [ICONS.SUBSCRIBED]: (props: IconProps) => {
     const { size = 24, color = 'currentColor', ...otherProps } = props;
     return (
@@ -210,8 +223,8 @@ export const icons = {
         width={size}
         height={size}
         fill={color}
-        stroke={color}
-        strokeWidth="1"
+        stroke={'#FFFFFF'}
+        strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
         {...otherProps}
@@ -221,9 +234,25 @@ export const icons = {
     );
   },
 
-  [ICONS.UNSUBSCRIBE]: buildIcon(
-    <path d="M 12,5.67 10.94,4.61 C 5.7533356,-0.57666427 -2.0266644,7.2033357 3.16,12.39 l 1.06,1.06 7.78,7.78 7.78,-7.78 1.06,-1.06 c 2.149101,-2.148092 2.149101,-5.6319078 0,-7.78 -2.148092,-2.1491008 -5.631908,-2.1491008 -7.78,0 L 9.4481298,8.2303201 15.320603,9.2419066 11.772427,13.723825" />
-  ),
+  [ICONS.UNSUBSCRIBE]: (props: IconProps) => {
+    const { size = 24, color = 'currentColor', ...otherProps } = props;
+    return (
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        width={size}
+        height={size}
+        fill={color}
+        stroke={'#FFFFFF'}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        {...otherProps}
+      >
+        <path d="M 12,5.67 10.94,4.61 C 5.7533356,-0.57666427 -2.0266644,7.2033357 3.16,12.39 l 1.06,1.06 7.78,7.78 7.78,-7.78 1.06,-1.06 c 2.149101,-2.148092 2.149101,-5.6319078 0,-7.78 -2.148092,-2.1491008 -5.631908,-2.1491008 -7.78,0 L 9.4481298,8.2303201 15.320603,9.2419066 11.772427,13.723825" />
+      </svg>
+    );
+  },
   [ICONS.SETTINGS]: buildIcon(
     <g>
       <circle cx="12" cy="12" r="3" />
@@ -382,21 +411,10 @@ export const icons = {
   [ICONS.NO]: buildIcon(
     <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
   ),
-  [ICONS.UP]: buildIcon(
-    <g>
-      <polyline transform="matrix(1,0,0,-1,0,24.707107)" points="6 9 12 15 18 9" />
-    </g>
-  ),
-  [ICONS.UP_TOP]: buildIcon(
-    <g>
-      <path d="m6 16 6-6 6 6M6 8h12" />
-    </g>
-  ),
-  [ICONS.DOWN_BOTTOM]: buildIcon(
-    <g>
-      <path d="m6 8 6 6 6-6M6 16h12" />
-    </g>
-  ),
+  [ICONS.UP]: buildIcon(<polyline transform="matrix(1,0,0,-1,0,24.707107)" points="6 9 12 15 18 9" />),
+  [ICONS.UP_TOP]: buildIcon(<path d="m6 16 6-6 6 6M6 8h12" />),
+  [ICONS.DOWN_BOTTOM]: buildIcon(<path d="m6 8 6 6 6-6M6 16h12" />),
+  [ICONS.DRAG]: buildIcon(<path d="m8 18 4 4 4-4M4 14h16M4 10h16M8 6l4-4 4 4" />),
   [ICONS.DOWN]: buildIcon(<polyline points="6 9 12 15 18 9" />),
   [ICONS.FULLSCREEN]: buildIcon(
     <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
@@ -597,12 +615,24 @@ export const icons = {
       <path d="M21 13v2a4 4 0 0 1-4 4H3" />
     </g>
   ),
-  [ICONS.MORE_VERTICAL]: buildIcon(
-    <g>
-      <circle cx="12" cy="5" r="1" />
-      <circle cx="12" cy="12" r="1" />
-      <circle cx="12" cy="19" r="1" />
-    </g>
+  [ICONS.MORE_VERTICAL]: (props: CustomProps) => (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      width="20"
+      height="20"
+      fill="none"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <g>
+        <circle cx="12" cy="5" r="1" />
+        <circle cx="12" cy="12" r="1" />
+        <circle cx="12" cy="19" r="1" />
+      </g>
+    </svg>
   ),
   [ICONS.MORE]: buildIcon(
     <g transform="rotate(90 12 12)">
@@ -985,7 +1015,6 @@ export const icons = {
       width={props.size || '16'}
       height={props.size || '18'}
       fill="none"
-      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
@@ -1134,13 +1163,6 @@ export const icons = {
   ),
   [ICONS.DOWNVOTE]: buildIcon(
     <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17" />
-  ),
-  [ICONS.FIRE_ACTIVE]: buildIcon(
-    <path
-      d="M11.3969 23.04C11.3969 23.04 18.4903 21.8396 18.9753 16.2795C19.3997 9.89148 14.2161 7.86333 13.2915 4.56586C13.1861 4.2261 13.1051 3.88045 13.049 3.53109C12.9174 2.68094 12.8516 1.82342 12.852 0.964865C12.852 0.964865 5.607 0.426785 4.87947 10.6227C4.34858 10.1469 3.92655 9.57999 3.63777 8.9548C3.349 8.32962 3.19921 7.65853 3.19706 6.98033C3.19706 6.98033 -4.32074 18.7767 8.45649 23.04C7.94555 22.1623 7.67841 21.1842 7.67841 20.1909C7.67841 19.1976 7.94555 18.2195 8.45649 17.3418C9.54778 15.0653 9.97218 13.8788 9.97218 13.8788C9.97218 13.8788 15.5044 18.6525 11.3969 23.04Z"
-      fill="#FF6635"
-      strokeWidth="0"
-    />
   ),
   [ICONS.SLIME_ACTIVE]: buildIcon(
     <path
@@ -2012,6 +2034,24 @@ export const icons = {
       <line x1="19" y1="16.5" x2="20" y2="16.5" />
       <line x1="7" y1="20.5" x2="17" y2="20.5" />
       <line x1="19" y1="20.5" x2="20" y2="20.5" />
+    </g>
+  ),
+  [ICONS.EMOJI]: buildIcon(
+    <g>
+      <circle cx="12" cy="12" r="10" />
+      <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+      <line x1="9" y1="9" x2="9.01" y2="9" />
+      <line x1="15" y1="9" x2="15.01" y2="9" />
+    </g>
+  ),
+  [ICONS.STICKER]: buildIcon(
+    <g>
+      <path d="M7.13,9a.38.38,0,1,1-.38.38A.38.38,0,0,1,7.13,9" />
+      <path d="M5.51,15.42A7.34,7.34,0,0,0,12,19.34a7.83,7.83,0,0,0,.92-.06" />
+      <path d="M23.24,11.52A11.25,11.25,0,1,0,12,23.25h.5" />
+      <path d="M14.45,9.66a2.31,2.31,0,0,1,3.91,0" />
+      <line x1="23.24" y1="11.52" x2="12.5" y2="23.24" />
+      <path d="M12.5,23.24v-1A10.74,10.74,0,0,1,23.24,11.52" />
     </g>
   ),
 };

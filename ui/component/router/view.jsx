@@ -8,6 +8,7 @@ import { LINKED_COMMENT_QUERY_PARAM } from 'constants/comment';
 import { parseURI, isURIValid } from 'util/lbryURI';
 import { WELCOME_VERSION } from 'config';
 import { GetLinksData } from 'util/buildHomepage';
+import { useIsLargeScreen } from 'effects/use-screensize';
 
 import HomePage from 'page/home';
 import BackupPage from 'page/backup';
@@ -107,20 +108,7 @@ type PrivateRouteProps = Props & {
 
 function PrivateRoute(props: PrivateRouteProps) {
   const { component: Component, isAuthenticated, ...rest } = props;
-  const urlSearchParams = new URLSearchParams(props.location.search);
-  const redirectUrl = urlSearchParams.get('redirect');
-  return (
-    <Route
-      {...rest}
-      render={(props) =>
-        isAuthenticated || !IS_WEB ? (
-          <Component {...props} />
-        ) : (
-          <Redirect to={`/$/${PAGES.AUTH}?redirect=${redirectUrl || props.location.pathname}`} />
-        )
-      }
-    />
-  );
+  return <Route {...rest} render={(props) => <Component {...props} />} />;
 }
 
 function AppRouter(props: Props) {
@@ -143,8 +131,8 @@ function AppRouter(props: Props) {
   const urlParams = new URLSearchParams(search);
   const resetScroll = urlParams.get('reset_scroll');
   const hasLinkedCommentInUrl = urlParams.get(LINKED_COMMENT_QUERY_PARAM);
-
-  const dynamicRoutes = GetLinksData(homepageData).filter(
+  const isLargeScreen = useIsLargeScreen();
+  const dynamicRoutes = GetLinksData(homepageData, isLargeScreen).filter(
     (potentialRoute: any) => potentialRoute && potentialRoute.route
   );
 
@@ -265,12 +253,7 @@ function AppRouter(props: Props) {
 
       <PrivateRoute {...props} exact path={`/$/${PAGES.YOUTUBE_SYNC}`} component={YoutubeSyncPage} />
       <PrivateRoute {...props} exact path={`/$/${PAGES.TAGS_FOLLOWING}`} component={TagsFollowingPage} />
-      <PrivateRoute
-        {...props}
-        exact
-        path={`/$/${PAGES.CHANNELS_FOLLOWING}`}
-        component={isAuthenticated || !IS_WEB ? ChannelsFollowingPage : DiscoverPage}
-      />
+      <PrivateRoute {...props} exact path={`/$/${PAGES.CHANNELS_FOLLOWING}`} component={ChannelsFollowingPage} />
       <PrivateRoute {...props} path={`/$/${PAGES.SETTINGS_NOTIFICATIONS}`} component={SettingsNotificationsPage} />
       <PrivateRoute {...props} path={`/$/${PAGES.SETTINGS_UPDATE_PWD}`} component={UpdatePasswordPage} />
       <PrivateRoute

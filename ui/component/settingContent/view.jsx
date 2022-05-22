@@ -4,7 +4,6 @@ import * as PAGES from 'constants/pages';
 import React from 'react';
 import * as SETTINGS from 'constants/settings';
 import { Lbryio } from 'lbryinc';
-import * as MODALS from 'constants/modal_types';
 import { SETTINGS_GRP } from 'constants/settings';
 import Button from 'component/button';
 import Card from 'component/common/card';
@@ -25,6 +24,7 @@ type Props = {
   autoplayNext: boolean,
   hideReposts: ?boolean,
   showNsfw: boolean,
+  persistWatchTime: boolean,
   myChannelUrls: ?Array<string>,
   instantPurchaseEnabled: boolean,
   instantPurchaseMax: Price,
@@ -32,7 +32,7 @@ type Props = {
   // --- perform ---
   setClientSetting: (string, boolean | string | number) => void,
   clearPlayingUri: () => void,
-  openModal: (string) => void,
+  // clearContentCache: () => void,
 };
 
 export default function SettingContent(props: Props) {
@@ -42,6 +42,7 @@ export default function SettingContent(props: Props) {
     autoplayMedia,
     autoplayNext,
     hideReposts,
+    persistWatchTime,
     showNsfw,
     myChannelUrls,
     instantPurchaseEnabled,
@@ -49,8 +50,21 @@ export default function SettingContent(props: Props) {
     enablePublishPreview,
     setClientSetting,
     clearPlayingUri,
-    openModal,
+    // clearContentCache,
   } = props;
+  // feature disabled until styling is ironed out
+  // const [contentCacheCleared, setContentCacheCleared] = React.useState(false);
+  // const [clearingContentCache, setClearingContentCache] = React.useState(false);
+  // const onClearContentCache = React.useCallback(() => {
+  //   setClearingContentCache(true);
+  //   clearContentCache();
+  //   // Just a small timer to give the user a visual effect
+  //   // that the content is being cleared.
+  //   setTimeout(() => {
+  //     setClearingContentCache(false);
+  //     setContentCacheCleared(true);
+  //   }, 2000);
+  // }, [setClearingContentCache, clearContentCache, setContentCacheCleared]);
 
   return (
     <>
@@ -102,54 +116,71 @@ export default function SettingContent(props: Props) {
                   }
                   setClientSetting(SETTINGS.HIDE_REPOSTS, !hideReposts);
                 }}
+                checked={hideReposts}
               />
+            </SettingsRow>
+            <SettingsRow title={__('Show Video View Progress')} subtitle={__(HELP.PERSIST_WATCH_TIME)}>
+              {/* <div className="settings__persistWatchTimeCheckbox"> */}
+              <FormField
+                type="checkbox"
+                name="persist_watch_time"
+                onChange={() => setClientSetting(SETTINGS.PERSIST_WATCH_TIME, !persistWatchTime)}
+                checked={persistWatchTime}
+              />
+              {/* </div>
+              Disabled until styling is better
+              <div className="settings__persistWatchTimeClearCache">
+               <Button
+                 button="primary"
+                 icon={ICONS.ALERT}
+                 label={
+                   contentCacheCleared
+                     ? __('Views cleared')
+                     : clearingContentCache
+                     ? __('Clearing...')
+                     : __('Clear Views')
+                 }
+                 onClick={onClearContentCache}
+                 disabled={clearingContentCache || contentCacheCleared}
+               />
+              </div> */}
             </SettingsRow>
             <SettingsRow title={__('Show mature content')} subtitle={__(HELP.SHOW_MATURE)}>
               <FormField
                 type="checkbox"
                 name="show_nsfw"
                 checked={showNsfw}
-                onChange={() =>
-                  !IS_WEB || showNsfw
-                    ? setClientSetting(SETTINGS.SHOW_MATURE, !showNsfw)
-                    : openModal(MODALS.CONFIRM_AGE)
-                }
+                onChange={() => setClientSetting(SETTINGS.SHOW_MATURE, !showNsfw)}
+              />
+            </SettingsRow>
+            <SettingsRow title={__('Notifications')}>
+              <Button
+                button="inverse"
+                label={__('Manage')}
+                icon={ICONS.ARROW_RIGHT}
+                navigate={`/$/${PAGES.SETTINGS_NOTIFICATIONS}`}
               />
             </SettingsRow>
 
-            {(isAuthenticated || !IS_WEB) && (
-              <>
-                <SettingsRow title={__('Notifications')}>
-                  <Button
-                    button="inverse"
-                    label={__('Manage')}
-                    icon={ICONS.ARROW_RIGHT}
-                    navigate={`/$/${PAGES.SETTINGS_NOTIFICATIONS}`}
-                  />
-                </SettingsRow>
+            <SettingsRow title={__('Blocked and muted channels')}>
+              <Button
+                button="inverse"
+                label={__('Manage')}
+                icon={ICONS.ARROW_RIGHT}
+                navigate={`/$/${PAGES.SETTINGS_BLOCKED_MUTED}`}
+              />
+            </SettingsRow>
 
-                <SettingsRow title={__('Blocked and muted channels')}>
-                  <Button
-                    button="inverse"
-                    label={__('Manage')}
-                    icon={ICONS.ARROW_RIGHT}
-                    navigate={`/$/${PAGES.SETTINGS_BLOCKED_MUTED}`}
-                  />
-                </SettingsRow>
-
-                {myChannelUrls && myChannelUrls.length > 0 && (
-                  <SettingsRow title={__('Creator settings')}>
-                    <Button
-                      button="inverse"
-                      label={__('Manage')}
-                      icon={ICONS.ARROW_RIGHT}
-                      navigate={`/$/${PAGES.SETTINGS_CREATOR}`}
-                    />
-                  </SettingsRow>
-                )}
-              </>
+            {myChannelUrls && myChannelUrls.length > 0 && (
+              <SettingsRow title={__('Creator settings')}>
+                <Button
+                  button="inverse"
+                  label={__('Manage')}
+                  icon={ICONS.ARROW_RIGHT}
+                  navigate={`/$/${PAGES.SETTINGS_CREATOR}`}
+                />
+              </SettingsRow>
             )}
-
             <SettingsRow title={__('Publish confirmation')} subtitle={__(HELP.PUBLISH_PREVIEW)}>
               <FormField
                 type="checkbox"
@@ -159,13 +190,9 @@ export default function SettingContent(props: Props) {
                 onChange={() => setClientSetting(SETTINGS.ENABLE_PUBLISH_PREVIEW, !enablePublishPreview)}
               />
             </SettingsRow>
-
-            {/* @if TARGET='app' */}
             <SettingsRow title={__('Max purchase price')} subtitle={__(HELP.MAX_PURCHASE_PRICE)} multirow>
               <MaxPurchasePrice />
             </SettingsRow>
-            {/* @endif */}
-
             <SettingsRow title={__('Purchase and tip confirmations')} multirow>
               <FormField
                 type="radio"
@@ -204,6 +231,7 @@ const HELP = {
   AUTOPLAY_MEDIA: 'Autoplay video and audio files when navigating to a file.',
   AUTOPLAY_NEXT: 'Autoplay the next related item when a file (video or audio) finishes playing.',
   HIDE_REPOSTS: 'You will not see reposts by people you follow or receive email notifying about them.',
+  PERSIST_WATCH_TIME: 'Display view progress on thumbnail. This setting will not hide any blockchain activity or downloads.',
   SHOW_MATURE: 'Mature content may include nudity, intense sexuality, profanity, or other adult content. By displaying mature content, you are affirming you are of legal age to view mature content in your country or jurisdiction.  ',
   MAX_PURCHASE_PRICE: 'This will prevent you from purchasing any content over a certain cost, as a safety measure.',
   ONLY_CONFIRM_OVER_AMOUNT: '', // [feel redundant. Disable for now] "When this option is chosen, LBRY won't ask you to confirm purchases or tips below your chosen amount.",

@@ -18,6 +18,11 @@ import { useHistory } from 'react-router';
 import { isURIEqual } from 'util/lbryURI';
 import AutoplayCountdown from 'component/autoplayCountdown';
 
+// scss/init/vars.scss
+// --header-height
+const HEADER_HEIGHT = 60;
+const HEADER_HEIGHT_MOBILE = 60;
+
 const IS_DESKTOP_MAC = typeof process === 'object' ? process.platform === 'darwin' : false;
 const DEBOUNCE_WINDOW_RESIZE_HANDLER_MS = 100;
 export const INLINE_PLAYER_WRAPPER_CLASS = 'inline-player__wrapper';
@@ -243,14 +248,10 @@ export default function FileRenderFloating(props: Props) {
   }, [handleResize]);
 
   useEffect(() => {
-    // @if TARGET='app'
     setDesktopPlayStartTime(Date.now());
-    // @endif
 
     return () => {
-      // @if TARGET='app'
       setDesktopPlayStartTime(undefined);
-      // @endif
     };
   }, [uri]);
 
@@ -315,7 +316,6 @@ export default function FileRenderFloating(props: Props) {
 
   function handleDragStop(e, ui) {
     if (wasDragging) {
-      // e.stopPropagation();
       setWasDragging(false);
     }
 
@@ -344,7 +344,7 @@ export default function FileRenderFloating(props: Props) {
           'content__viewer--floating': isFloating,
           'content__viewer--inline': !isFloating,
           'content__viewer--secondary': isComment,
-          'content__viewer--theater-mode': !isFloating && videoTheaterMode,
+          'content__viewer--theater-mode': !isFloating && videoTheaterMode && playingUri?.uri === primaryUri,
           'content__viewer--disable-click': wasDragging,
         })}
         style={
@@ -353,8 +353,11 @@ export default function FileRenderFloating(props: Props) {
                 width: fileViewerRect.width,
                 height: fileViewerRect.height,
                 left: fileViewerRect.x,
-                // 80px is header height in scss/init/vars.scss
-                top: fileViewerRect.windowOffset + fileViewerRect.top - 80 - (IS_DESKTOP_MAC ? 24 : 0),
+                top:
+                  fileViewerRect.windowOffset +
+                  fileViewerRect.top -
+                  (isMobile ? HEADER_HEIGHT_MOBILE : HEADER_HEIGHT) -
+                  (IS_DESKTOP_MAC ? 24 : 0),
               }
             : {}
         }
@@ -369,7 +372,7 @@ export default function FileRenderFloating(props: Props) {
               title={__('Close')}
               onClick={closeFloatingPlayer}
               icon={ICONS.REMOVE}
-              button="primary"
+              button="alt"
               className="content__floating-close"
             />
           )}

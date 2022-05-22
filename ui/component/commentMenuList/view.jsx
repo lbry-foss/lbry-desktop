@@ -2,8 +2,6 @@
 import { getChannelFromClaim } from 'util/claim';
 import { MenuList, MenuItem } from '@reach/menu-button';
 import { parseURI } from 'util/lbryURI';
-import { URL } from 'config';
-import { useHistory } from 'react-router';
 import * as ICONS from 'constants/icons';
 import * as MODALS from 'constants/modal_types';
 import ChannelThumbnail from 'component/channelThumbnail';
@@ -23,7 +21,6 @@ type Props = {
   // --- select ---
   claim: ?Claim,
   claimIsMine: boolean,
-  contentChannelPermanentUrl: any,
   activeChannelClaim: ?ChannelClaim,
   playingUri: ?PlayingUri,
   moderationDelegatorsById: { [string]: { global: boolean, delegators: { name: string, claimId: string } } },
@@ -46,7 +43,6 @@ function CommentMenuList(props: Props) {
     commentIsMine,
     commentId,
     activeChannelClaim,
-    contentChannelPermanentUrl,
     isTopLevel,
     isPinned,
     playingUri,
@@ -54,7 +50,6 @@ function CommentMenuList(props: Props) {
     disableEdit,
     disableRemove,
     supportAmount,
-    doToast,
     handleEditComment,
     openModal,
     clearPlayingUri,
@@ -64,11 +59,8 @@ function CommentMenuList(props: Props) {
     setQuickReply,
   } = props;
 
-  const {
-    location: { pathname, search },
-  } = useHistory();
-
   const contentChannelClaim = getChannelFromClaim(claim);
+  const contentChannelPermanentUrl = contentChannelClaim && contentChannelClaim.permanent_url;
   const activeModeratorInfo = activeChannelClaim && moderationDelegatorsById[activeChannelClaim.claim_id];
   const activeChannelIsCreator = activeChannelClaim && activeChannelClaim.permanent_url === contentChannelPermanentUrl;
   const activeChannelIsAdmin = activeChannelClaim && activeModeratorInfo && activeModeratorInfo.global;
@@ -151,15 +143,6 @@ function CommentMenuList(props: Props) {
     );
   }
 
-  function handleCopyCommentLink() {
-    const urlParams = new URLSearchParams(search);
-    urlParams.delete('lc');
-    urlParams.append('lc', commentId);
-    navigator.clipboard
-      .writeText(`${URL}${pathname}?${urlParams.toString()}`)
-      .then(() => doToast({ message: __('Link copied.') }));
-  }
-
   return (
     <MenuList className="menu__list">
       {activeChannelIsCreator && <div className="comment__menu-title">{__('Creator tools')}</div>}
@@ -227,15 +210,6 @@ function CommentMenuList(props: Props) {
             )}
           </MenuItem>
         </>
-      )}
-
-      {IS_WEB && (
-        <MenuItem className="comment__menu-option" onSelect={handleCopyCommentLink}>
-          <div className="menu__link">
-            <Icon aria-hidden icon={ICONS.COPY_LINK} />
-            {__('Copy Link')}
-          </div>
-        </MenuItem>
       )}
 
       {activeChannelClaim && (

@@ -1,5 +1,7 @@
 // @flow
-import { DOMAIN } from 'config';
+
+// $FlowFixMe
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
 import React from 'react';
 import classnames from 'classnames';
 import Button from 'component/button';
@@ -55,6 +57,8 @@ type Props = {
   onDone: (string) => void,
   setActiveChannel: (string) => void,
   setIncognito: (boolean) => void,
+  doCollectionEdit: (CollectionEditParams) => void,
+  resetThumbnailStatus: () => void,
 };
 
 function CollectionForm(props: Props) {
@@ -88,9 +92,11 @@ function CollectionForm(props: Props) {
     setActiveChannel,
     setIncognito,
     onDone,
+    doCollectionEdit,
+    resetThumbnailStatus,
   } = props;
   const activeChannelName = activeChannelClaim && activeChannelClaim.name;
-  let prefix = IS_WEB ? `${DOMAIN}/` : 'lbry://';
+  let prefix = 'lbry://';
   if (activeChannelName && !incognito) {
     prefix += `${activeChannelName}/`;
   }
@@ -154,7 +160,7 @@ function CollectionForm(props: Props) {
   }
 
   function handleUpdateThumbnail(update: { [string]: string }) {
-    if (update.thumbnail_url) {
+    if (update.thumbnail_url !== undefined) {
       setParam(update);
     } else if (update.thumbnail_status) {
       setThumbStatus(update.thumbnail_status);
@@ -195,6 +201,17 @@ function CollectionForm(props: Props) {
     };
 
     return collectionParams;
+  }
+
+  function handleOnDragEnd(result) {
+    const { source, destination } = result;
+
+    if (!destination) return;
+
+    const { index: from } = source;
+    const { index: to } = destination;
+
+    doCollectionEdit({ order: { from, to } });
   }
 
   function handleLanguageChange(index, code) {
@@ -258,12 +275,18 @@ function CollectionForm(props: Props) {
 
   // on mount, if we get a collectionChannel, set it.
   React.useEffect(() => {
-    if (hasClaim && !initialized) {
-      if (collectionChannel) {
-        setActiveChannel(collectionChannel);
-        setIncognito(false);
-      } else if (!collectionChannel && hasClaim) {
-        setIncognito(true);
+    if (!initialized) {
+      if (hasClaim) {
+        if (collectionChannel) {
+          setActiveChannel(collectionChannel);
+          setIncognito(false);
+        } else if (!collectionChannel && hasClaim) {
+          setIncognito(true);
+        }
+      } else {
+        if (incognito) {
+          setIncognito(true);
+        }
       }
       setInitialized(true);
     }
@@ -272,9 +295,10 @@ function CollectionForm(props: Props) {
   // every time activechannel or incognito changes, set it.
   React.useEffect(() => {
     if (initialized) {
-      if (activeChannelId) {
+      if (activeChannelId && !incognito) {
         setParam({ channel_id: activeChannelId });
-      } else if (incognito) {
+      }
+      if (incognito) {
         setParam({ channel_id: undefined });
       }
     }
@@ -287,7 +311,10 @@ function CollectionForm(props: Props) {
     }
   }, [uri, hasClaim]);
 
-  console.log('params', params);
+  React.useEffect(() => {
+    resetThumbnailStatus();
+  }, [resetThumbnailStatus]);
+
   return (
     <>
       <div className={classnames('main--contained', { 'card--disabled': disabled })}>
@@ -337,10 +364,11 @@ function CollectionForm(props: Props) {
                       />
                       <fieldset-section>
                         <SelectThumbnail
-                          thumbnailParam={params.thumbnail_url}
-                          thumbnailParamError={thumbError}
+                          thumbnail={params.thumbnail_url}
+                          thumbnailError={thumbError}
                           thumbnailParamStatus={thumbStatus}
                           updateThumbnailParams={handleUpdateThumbnail}
+                          usePublishFormMode
                         />
                       </fieldset-section>
                       <FormField
@@ -358,12 +386,19 @@ function CollectionForm(props: Props) {
               </div>
             </TabPanel>
             <TabPanel>
-              <ClaimList
-                uris={collectionUrls}
-                collectionId={collectionId}
-                empty={__('This list has no items.')}
-                type={'listview'}
-              />
+              <DragDropContext onDragEnd={handleOnDragEnd}>
+                <Droppable droppableId="list__ordering">
+                  {(DroppableProvided) => (
+                    <ClaimList
+                      uris={collectionUrls}
+                      collectionId={collectionId}
+                      empty={__('This list has no items.')}
+                      showEdit
+                      droppableProvided={DroppableProvided}
+                    />
+                  )}
+                </Droppable>
+              </DragDropContext>
             </TabPanel>
             <TabPanel>
               <Card

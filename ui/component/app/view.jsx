@@ -68,14 +68,15 @@ type Props = {
   syncLoop: (?boolean) => void,
   currentModal: any,
   syncFatalError: boolean,
-  activeChannelClaim: ?ChannelClaim,
-  myChannelUrls: ?Array<string>,
+  activeChannelId: ?string,
+  myChannelClaimIds: ?Array<string>,
   subscriptions: Array<Subscription>,
   setActiveChannelIfNotSet: () => void,
   setIncognito: (boolean) => void,
   fetchModBlockedList: () => void,
   resolveUris: (Array<string>) => void,
   fetchModAmIList: () => void,
+  isUpdateModalDisplayed: boolean,
 };
 
 function App(props: Props) {
@@ -103,14 +104,15 @@ function App(props: Props) {
     syncLoop,
     currentModal,
     syncFatalError,
-    myChannelUrls,
-    activeChannelClaim,
+    myChannelClaimIds,
+    activeChannelId,
     setActiveChannelIfNotSet,
     setIncognito,
     fetchModBlockedList,
     resolveUris,
     subscriptions,
     fetchModAmIList,
+    isUpdateModalDisplayed,
   } = props;
 
   const appRef = useRef();
@@ -125,9 +127,10 @@ function App(props: Props) {
   const { pathname, search } = props.location;
   const [upgradeNagClosed, setUpgradeNagClosed] = useState(false);
   const [resolvedSubscriptions, setResolvedSubscriptions] = useState(false);
+  // const [retryingSync, setRetryingSync] = useState(false);
+  const [langRenderKey, setLangRenderKey] = useState(0);
   const [sidebarOpen] = usePersistedState('sidebar', true);
-  const showUpgradeButton =
-    (autoUpdateDownloaded || (process.platform === 'linux' && isUpgradeAvailable)) && !upgradeNagClosed;
+  const showUpgradeButton = (autoUpdateDownloaded || isUpgradeAvailable) && !upgradeNagClosed;
   // referral claiming
   const referredRewardAvailable = rewards && rewards.some((reward) => reward.reward_type === REWARDS.TYPE_REFEREE);
   const urlParams = new URLSearchParams(search);
@@ -135,10 +138,10 @@ function App(props: Props) {
   const sanitizedReferrerParam = rawReferrerParam && rawReferrerParam.replace(':', '#');
   const userId = user && user.id;
   const useCustomScrollbar = !IS_MAC;
-  const hasMyChannels = myChannelUrls && myChannelUrls.length > 0;
-  const hasNoChannels = myChannelUrls && myChannelUrls.length === 0;
+  const hasMyChannels = myChannelClaimIds && myChannelClaimIds.length > 0;
+  const hasNoChannels = myChannelClaimIds && myChannelClaimIds.length === 0;
   const shouldMigrateLanguage = LANGUAGE_MIGRATIONS[language];
-  const hasActiveChannelClaim = activeChannelClaim !== undefined;
+  const hasActiveChannelClaim = activeChannelId !== undefined;
   const isPersonalized = hasVerifiedEmail;
   const renderFiledrop = isAuthenticated;
 
@@ -152,7 +155,7 @@ function App(props: Props) {
     if (!uploadCount) return;
     const handleBeforeUnload = (event) => {
       event.preventDefault();
-      event.returnValue = 'magic'; // without setting this to something it doesn't work
+      event.returnValue = __('There are pending uploads.'); // without setting this to something it doesn't work
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
@@ -272,7 +275,6 @@ function App(props: Props) {
     }
   }, [previousRewardApproved, isRewardApproved]);
 
-  // @if TARGET='app'
   useEffect(() => {
     if (updatePreferences && getWalletSyncPref && readyForPrefs) {
       getWalletSyncPref()
@@ -282,7 +284,6 @@ function App(props: Props) {
         });
     }
   }, [updatePreferences, getWalletSyncPref, setReadyForSync, readyForPrefs, hasVerifiedEmail]);
-  // @endif
 
   // ready for sync syncs, however after signin when hasVerifiedEmail, that syncs too.
   useEffect(() => {
@@ -314,7 +315,6 @@ function App(props: Props) {
     if (!hasSignedIn && hasVerifiedEmail) {
       signIn();
       setHasSignedIn(true);
-      if (IS_WEB) setReadyForSync(true);
     }
   }, [hasVerifiedEmail, signIn, hasSignedIn]);
 
@@ -328,6 +328,11 @@ function App(props: Props) {
     }
   }, [sidebarOpen, isPersonalized, resolvedSubscriptions, subscriptions, resolveUris, setResolvedSubscriptions]);
 
+  useEffect(() => {
+    // When language is changed or translations are fetched, we render.
+    setLangRenderKey(Date.now());
+  }, [language, languages]);
+
   if (syncFatalError) {
     return <SyncFatalError />;
   }
@@ -339,7 +344,8 @@ function App(props: Props) {
         [`${MAIN_WRAPPER_CLASS}--scrollbar`]: useCustomScrollbar,
       })}
       ref={appRef}
-      onContextMenu={IS_WEB ? undefined : (e) => openContextMenu(e)}
+      key={langRenderKey}
+      onContextMenu={(e) => openContextMenu(e)}
     >
       <Router />
       <ModalRouter />
@@ -347,7 +353,7 @@ function App(props: Props) {
       <FileRenderFloating />
       {isEnhancedLayout && <Yrbl className="yrbl--enhanced" />}
 
-      {showUpgradeButton && (
+      {showUpgradeButton && !isUpdateModalDisplayed && (
         <Nag
           message={__('An upgrade is available.')}
           actionText={__('Install Now')}

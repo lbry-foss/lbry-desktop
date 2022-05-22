@@ -8,7 +8,6 @@ import TruncatedText from 'component/common/truncated-text';
 import DateTime from 'component/dateTime';
 import ChannelThumbnail from 'component/channelThumbnail';
 import FileViewCountInline from 'component/fileViewCountInline';
-import SubscribeButton from 'component/subscribeButton';
 import useGetThumbnail from 'effects/use-get-thumbnail';
 import { formatLbryUrlForWeb, generateListSearchUrlParams } from 'util/url';
 import { formatClaimPreviewTitle } from 'util/formatAriaLabel';
@@ -29,7 +28,7 @@ type Props = {
   mediaDuration?: string,
   resolveUri: (string) => void,
   isResolvingUri: boolean,
-  history: { push: (string) => void },
+  history: { push: (string) => void, location: { pathname: string } },
   thumbnail: string,
   title: string,
   placeholder: boolean,
@@ -42,6 +41,7 @@ type Props = {
   properties?: (Claim) => void,
   collectionId?: string,
   viewCount: string,
+  swipeLayout: boolean,
 };
 
 // preview image cards used in related video functionality, channel overview page and homepage
@@ -66,6 +66,7 @@ function ClaimPreviewTile(props: Props) {
     collectionId,
     mediaDuration,
     viewCount,
+    swipeLayout = false,
   } = props;
   const isRepost = claim && claim.repost_channel_url;
   const isCollection = claim && claim.value_type === 'collection';
@@ -83,7 +84,7 @@ function ClaimPreviewTile(props: Props) {
   const shouldFetch = claim === undefined;
   const thumbnailUrl = useGetThumbnail(uri, claim, streamingUrl, getFile, placeholder) || thumbnail;
   const canonicalUrl = claim && claim.canonical_url;
-  const permanentUrl = claim && claim.permanent_url;
+  const repostedContentUri = claim && (claim.reposted_claim ? claim.reposted_claim.permanent_url : claim.permanent_url);
   const listId = collectionId || collectionClaimId;
   const navigateUrl =
     formatLbryUrlForWeb(canonicalUrl || uri || '/') + (listId ? generateListSearchUrlParams(listId) : '');
@@ -91,6 +92,7 @@ function ClaimPreviewTile(props: Props) {
     to: navigateUrl,
     onClick: (e) => e.stopPropagation(),
   };
+  const { location } = history;
 
   let isValid = false;
   if (uri) {
@@ -106,7 +108,6 @@ function ClaimPreviewTile(props: Props) {
   const isChannel = claim && claim.value_type === 'channel';
   const channelUri = !isChannel ? signingChannel && signingChannel.permanent_url : claim && claim.permanent_url;
   const channelTitle = signingChannel && ((signingChannel.value && signingChannel.value.title) || signingChannel.name);
-  const repostedChannelUri = isRepost && isChannel ? permanentUrl || canonicalUrl : undefined;
 
   // Aria-label value for claim preview
   let ariaLabelData = isChannel ? title : formatClaimPreviewTitle(title, channelTitle, date, mediaDuration);
@@ -138,23 +139,30 @@ function ClaimPreviewTile(props: Props) {
     return null;
   }
 
-  const isChannelPage = window.location.pathname.startsWith('/@');
+  const isChannelPage = location.pathname.startsWith('/@');
 
   const shouldShowViewCount = !(!viewCount || (claim && claim.repost_url) || !isChannelPage);
 
   if (placeholder || (!claim && isResolvingUri)) {
     return (
-      <li className={classnames('claim-preview--tile', {})}>
-        <div className="placeholder media__thumb">
+      <li className={classnames('placeholder claim-preview--tile', {})}>
+        <div className="media__thumb">
           <img src={PlaceholderTx} alt="Placeholder" />
         </div>
         <div className="placeholder__wrapper">
-          <div className="placeholder claim-tile__title" />
+          <div className="claim-tile__title" />
+          <div className="claim-tile__title_b" />
           <div
-            className={classnames('claim-tile__info placeholder', {
+            className={classnames('claim-tile__info', {
               contains_view_count: shouldShowViewCount,
             })}
-          />
+          >
+            <div className="channel-thumbnail" />
+            <div className="claim-tile__about">
+              <div className="button__content" />
+              <div className="claim-tile__about--counts" />
+            </div>
+          </div>
         </div>
       </li>
     );
@@ -167,14 +175,15 @@ function ClaimPreviewTile(props: Props) {
       onClick={handleClick}
       className={classnames('card claim-preview--tile', {
         'claim-preview__wrapper--channel': isChannel,
+        'swipe-list__item claim-preview--horizontal-tile': swipeLayout,
       })}
     >
       <NavLink {...navLinkProps} role="none" tabIndex={-1} aria-hidden>
-        <FileThumbnail thumbnail={thumbnailUrl} allowGifs>
+        <FileThumbnail uri={uri} thumbnail={thumbnailUrl} allowGifs>
           {!isChannel && (
             <React.Fragment>
               <div className="claim-preview__hover-actions">
-                {isPlayable && <FileWatchLaterLink focusable={false} uri={uri} />}
+                {isPlayable && <FileWatchLaterLink focusable={false} uri={repostedContentUri} />}
               </div>
               {/* @if TARGET='app' */}
               <div className="claim-preview__hover-actions">
@@ -215,11 +224,7 @@ function ClaimPreviewTile(props: Props) {
             contains_view_count: shouldShowViewCount,
           })}
         >
-          {isChannel ? (
-            <div className="claim-tile__about--channel">
-              <SubscribeButton uri={repostedChannelUri || uri} />
-            </div>
-          ) : (
+          {!isChannel && (
             <React.Fragment>
               <UriIndicator focusable={false} uri={uri} link hideAnonymous>
                 <ChannelThumbnail uri={channelUri} xsmall />

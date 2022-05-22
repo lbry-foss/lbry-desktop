@@ -14,7 +14,6 @@ import HelpLink from 'component/common/help-link';
 import { useHistory } from 'react-router';
 
 type Props = {
-  channels: Array<ChannelClaim>,
   channelUrls: Array<string>,
   fetchChannelListMine: () => void,
   fetchingChannels: boolean,
@@ -24,14 +23,8 @@ type Props = {
 };
 
 export default function ChannelsPage(props: Props) {
-  const {
-    channelUrls,
-    fetchChannelListMine,
-    fetchingChannels,
-    youtubeChannels,
-    doSetActiveChannel,
-    pendingChannels,
-  } = props;
+  const { channelUrls, fetchChannelListMine, fetchingChannels, youtubeChannels, doSetActiveChannel, pendingChannels } =
+    props;
   const [rewardData, setRewardData] = React.useState();
   const hasYoutubeChannels = youtubeChannels && Boolean(youtubeChannels.length);
 
@@ -46,7 +39,7 @@ export default function ChannelsPage(props: Props) {
   }, [setRewardData]);
 
   return (
-    <Page>
+    <Page className="channelsPage-wrapper">
       <div className="card-stack">
         {hasYoutubeChannels && <YoutubeTransferStatus hideChannelLink />}
 

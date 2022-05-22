@@ -1,4 +1,8 @@
 // @flow
+
+// $FlowFixMe
+import { DragDropContext, Droppable } from 'react-beautiful-dnd';
+
 import React from 'react';
 import ClaimList from 'component/claimList';
 import Page from 'component/page';
@@ -15,6 +19,7 @@ import * as COLLECTIONS_CONSTS from 'constants/collections';
 import Icon from 'component/common/icon';
 import * as ICONS from 'constants/icons';
 import Spinner from 'component/spinner';
+import { FormField } from 'component/common/form';
 
 export const PAGE_VIEW_QUERY = 'view';
 export const EDIT_PAGE = 'edit';
@@ -38,6 +43,7 @@ type Props = {
   fetchCollectionItems: (string, () => void) => void,
   resolveUris: (string) => void,
   user: ?User,
+  renameCollection: (string, string) => void,
 };
 
 export default function CollectionPage(props: Props) {
@@ -51,8 +57,10 @@ export default function CollectionPage(props: Props) {
     collectionHasEdits,
     claimIsPending,
     isResolvingCollection,
+    editCollection,
     fetchCollectionItems,
     deleteCollection,
+    renameCollection,
   } = props;
 
   const {
@@ -63,8 +71,31 @@ export default function CollectionPage(props: Props) {
   const [didTryResolve, setDidTryResolve] = React.useState(false);
   const [showInfo, setShowInfo] = React.useState(false);
   const [showEdit, setShowEdit] = React.useState(false);
+  const [unavailableUris, setUnavailable] = React.useState([]);
+
+  const collectionName = claim ? claim.value.title || claim.name : collection && collection.name;
+
+  const [isRenamingList, setIsRenamingList] = React.useState(false);
+  const [newName, setNewName] = React.useState(collectionName);
+
   const { name, totalItems } = collection || {};
   const isBuiltin = COLLECTIONS_CONSTS.BUILTIN_LISTS.includes(collectionId);
+
+  function handleOnDragEnd(result) {
+    const { source, destination } = result;
+
+    if (!destination) return;
+
+    const { index: from } = source;
+    const { index: to } = destination;
+
+    editCollection(collectionId, { order: { from, to } });
+  }
+
+  function handleRenameCollection() {
+    renameCollection(collectionId, newName);
+    setIsRenamingList(false);
+  }
 
   const urlParams = new URLSearchParams(search);
   const editing = urlParams.get(PAGE_VIEW_QUERY) === EDIT_PAGE;
@@ -94,6 +125,18 @@ export default function CollectionPage(props: Props) {
     />
   );
 
+  const removeUnavailable = (
+    <Button
+      button="close"
+      icon={ICONS.DELETE}
+      label={__('Remove all unavailable claims')}
+      onClick={() => {
+        editCollection(collectionId, { uris: unavailableUris, remove: true });
+        setUnavailable([]);
+      }}
+    />
+  );
+
   let titleActions;
   if (collectionHasEdits) {
     titleActions = unpublished;
@@ -112,19 +155,57 @@ export default function CollectionPage(props: Props) {
   const info = (
     <Card
       title={
-        <span>
-          <Icon
-            icon={
-              (collectionId === COLLECTIONS_CONSTS.WATCH_LATER_ID && ICONS.TIME) ||
-              (collectionId === COLLECTIONS_CONSTS.FAVORITES_ID && ICONS.STAR) ||
-              ICONS.STACK
+        isRenamingList ? (
+          <FormField
+            autoFocus
+            type="text"
+            className={'editable-text__field'}
+            name="rename_collection"
+            value={newName}
+            inputButton={
+              <>
+                <Button
+                  icon={ICONS.COMPLETE}
+                  disabled={!(newName || '').trim() || collectionName === newName}
+                  onClick={handleRenameCollection}
+                  className={'editable-text__input-button'}
+                />
+                <Button
+                  icon={ICONS.REMOVE}
+                  onClick={() => {
+                    setIsRenamingList(false);
+                    setNewName(collectionName);
+                  }}
+                  className={'editable-text__input-button'}
+                />
+              </>
             }
-            className="icon--margin-right"
+            onChange={(e) => setNewName(e.target.value)}
           />
-          {claim ? claim.value.title || claim.name : collection && collection.name}
-        </span>
+        ) : (
+          <span>
+            <Icon
+              icon={
+                (collectionId === COLLECTIONS_CONSTS.WATCH_LATER_ID && ICONS.TIME) ||
+                (collectionId === COLLECTIONS_CONSTS.FAVORITES_ID && ICONS.STAR) ||
+                ICONS.STACK
+              }
+              className="icon--margin-right"
+            />
+            {collectionName}
+            {!uri && (
+              <>
+                <Button
+                  className={'editable-text__input-button'}
+                  icon={ICONS.EDIT}
+                  onClick={() => setIsRenamingList(true)}
+                />
+              </>
+            )}
+          </span>
+        )
       }
-      titleActions={titleActions}
+      titleActions={unavailableUris.length > 0 ? removeUnavailable : titleActions}
       subtitle={subTitle}
       body={
         <CollectionActions
@@ -188,10 +269,24 @@ export default function CollectionPage(props: Props) {
 
   if (urlsReady) {
     return (
-      <Page>
+      <Page className="playlistPage-wrapper">
+        {editing}
         <div className={classnames('section card-stack')}>
           {info}
-          <ClaimList uris={collectionUrls} collectionId={collectionId} type={showEdit ? 'listview' : undefined} />
+
+          <DragDropContext onDragEnd={handleOnDragEnd}>
+            <Droppable droppableId="list__ordering">
+              {(DroppableProvided) => (
+                <ClaimList
+                  uris={collectionUrls}
+                  collectionId={collectionId}
+                  showEdit={showEdit}
+                  droppableProvided={DroppableProvided}
+                  unavailableUris={unavailableUris}
+                />
+              )}
+            </Droppable>
+          </DragDropContext>
         </div>
       </Page>
     );

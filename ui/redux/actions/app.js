@@ -18,7 +18,6 @@ import { Lbryio } from 'lbryinc';
 import { selectFollowedTagsList } from 'redux/selectors/tags';
 import { doToast, doError, doNotificationList } from 'redux/actions/notifications';
 
-import Native from 'native';
 import {
   doFetchDaemonSettings,
   doSetAutoLaunch,
@@ -37,8 +36,8 @@ import {
   selectModal,
   selectAllowAnalytics,
 } from 'redux/selectors/app';
-import { selectDaemonSettings, makeSelectClientSetting } from 'redux/selectors/settings';
-import { selectUser, selectUserVerifiedEmail } from 'redux/selectors/user';
+import { selectDaemonSettings, makeSelectClientSetting, selectDisableAutoUpdates } from 'redux/selectors/settings';
+import { selectUser } from 'redux/selectors/user';
 import { doSyncLoop, doSetPrefsReady, doPreferenceGet, doPopulateSharedUserState } from 'redux/actions/sync';
 import { doAuthenticate } from 'redux/actions/user';
 import { lbrySettings as config, version as appVersion } from 'package.json';
@@ -183,42 +182,50 @@ export function doCheckUpgradeAvailable() {
       type: ACTIONS.CHECK_UPGRADE_START,
     });
 
-    if (['win32', 'darwin'].includes(process.platform) || !!process.env.APPIMAGE) {
-      // On Windows, Mac, and AppImage, updates happen silently through
-      // electron-updater.
-      const autoUpdateDeclined = selectAutoUpdateDeclined(state);
+    const autoUpdateSupported = ['win32', 'darwin'].includes(process.platform) || !!process.env.APPIMAGE;
 
-      if (!autoUpdateDeclined && !isDev) {
-        ipcRenderer.send('check-for-updates');
-      }
+    const autoUpdateDeclined = selectAutoUpdateDeclined(state);
+
+    // If auto update isn't supported (Linux using .deb packages)
+    // don't perform any download, just get the upgrade info
+    // (release notes and version)
+    const disableAutoUpdate = !autoUpdateSupported || selectDisableAutoUpdates(state);
+
+    if (autoUpdateDeclined || isDev) {
       return;
     }
 
-    const success = ({ remoteVersion, upgradeAvailable }) => {
-      dispatch({
-        type: ACTIONS.CHECK_UPGRADE_SUCCESS,
-        data: {
-          upgradeAvailable,
-          remoteVersion,
-        },
-      });
+    ipcRenderer.send('check-for-updates', !disableAutoUpdate);
+  };
+}
 
-      if (
-        upgradeAvailable &&
-        !selectModal(state) &&
-        (!selectIsUpgradeSkipped(state) || remoteVersion !== selectRemoteVersion(state))
-      ) {
-        dispatch(doOpenModal(MODALS.UPGRADE));
-      }
-    };
+export function doNotifyUpdateAvailable(e) {
+  return (dispatch, getState) => {
+    const remoteVersion = e.releaseName || e.version;
 
-    const fail = () => {
-      dispatch({
-        type: ACTIONS.CHECK_UPGRADE_FAIL,
-      });
-    };
+    const state = getState();
+    const noModalBeingDisplayed = !selectModal(state);
+    const isUpgradeSkipped = selectIsUpgradeSkipped(state);
+    const isRemoteVersionDiff = remoteVersion !== selectRemoteVersion(state);
 
-    Native.getAppVersionInfo().then(success, fail);
+    dispatch({
+      type: ACTIONS.CHECK_UPGRADE_SUCCESS,
+      data: {
+        upgradeAvailable: true,
+        remoteVersion,
+        releaseNotes: e.releaseNotes,
+      },
+    });
+
+    const autoUpdateSupported = ['win32', 'darwin'].includes(process.platform) || !!process.env.APPIMAGE;
+
+    if (autoUpdateSupported) {
+      return;
+    }
+
+    if (noModalBeingDisplayed && !isUpgradeSkipped && isRemoteVersionDiff) {
+      dispatch(doOpenModal(MODALS.UPGRADE));
+    }
   };
 }
 
@@ -294,16 +301,10 @@ export function doAlertError(errorList) {
 }
 
 export function doAlertWaitingForSync() {
-  return (dispatch, getState) => {
-    const state = getState();
-    const authenticated = selectUserVerifiedEmail(state);
-
+  return (dispatch) => {
     dispatch(
       doToast({
-        message:
-          !authenticated && IS_WEB
-            ? __('Sign in or create an account to change this setting.')
-            : __('Please wait a bit, we are still getting your account ready.'),
+        message: __('Please wait a bit, we are still getting your account ready.'),
         isError: false,
       })
     );
@@ -315,7 +316,7 @@ export function doDaemonReady() {
     const state = getState();
 
     // TODO: call doFetchDaemonSettings, then get usage data, and call doAuthenticate once they are loaded into the store
-    const shareUsageData = IS_WEB || window.localStorage.getItem(SHARE_INTERNAL) === 'true';
+    const shareUsageData = window.localStorage.getItem(SHARE_INTERNAL) === 'true';
 
     dispatch(
       doAuthenticate(
@@ -575,19 +576,13 @@ export function doGetAndPopulatePreferences() {
     const syncEnabled = makeSelectClientSetting(SETTINGS.ENABLE_SYNC)(state);
     const hasVerifiedEmail = state.user && state.user.user && state.user.user.has_verified_email;
     let preferenceKey;
-    // @if TARGET='app'
     preferenceKey = syncEnabled && hasVerifiedEmail ? 'shared' : 'local';
-    // @endif
-    // @if TARGET='web'
-    preferenceKey = 'shared';
-    // @endif
 
     function successCb(savedPreferences) {
       const successState = getState();
       const daemonSettings = selectDaemonSettings(successState);
       if (savedPreferences !== null) {
         dispatch(doPopulateSharedUserState(savedPreferences));
-        // @if TARGET='app'
 
         const { settings } = savedPreferences.value;
         if (settings) {
@@ -602,9 +597,9 @@ export function doGetAndPopulatePreferences() {
                 }
               }
             }
+            // probably set commentServer here instead of in doPopulateSharedUserState()
           });
         }
-        // @endif
       } else {
         dispatch(doSetPrefsReady());
       }

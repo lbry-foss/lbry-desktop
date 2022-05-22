@@ -10,6 +10,7 @@ import {
   selectClaimsByUri,
   selectMyChannelClaims,
   selectPendingClaimsById,
+  selectClaimIsMine,
 } from 'redux/selectors/claims';
 
 import { doFetchTxoPage } from 'redux/actions/wallet';
@@ -183,6 +184,29 @@ export function doFetchClaimListMine(
   };
 }
 
+export function doFetchAllClaimListMine() {
+  return (dispatch: Dispatch) => {
+    dispatch({
+      type: ACTIONS.FETCH_ALL_CLAIM_LIST_MINE_STARTED,
+    });
+
+    // $FlowFixMe
+    Lbry.claim_list({
+      page: 1,
+      page_size: 99999,
+      claim_type: ['stream', 'repost'],
+      resolve: true,
+    }).then((result: StreamListResponse) => {
+      dispatch({
+        type: ACTIONS.FETCH_ALL_CLAIM_LIST_MINE_COMPLETED,
+        data: {
+          result,
+        },
+      });
+    });
+  };
+}
+
 export function doAbandonTxo(txo: Txo, cb: (string) => void) {
   return (dispatch: Dispatch) => {
     if (cb) cb(ABANDON_STATES.PENDING);
@@ -264,7 +288,8 @@ export function doAbandonTxo(txo: Txo, cb: (string) => void) {
   };
 }
 
-export function doAbandonClaim(txid: string, nout: number, cb: (string) => void) {
+export function doAbandonClaim(claim: Claim, cb: (string) => void) {
+  const { txid, nout } = claim;
   const outpoint = `${txid}:${nout}`;
 
   return (dispatch: Dispatch, getState: GetState) => {
@@ -273,7 +298,8 @@ export function doAbandonClaim(txid: string, nout: number, cb: (string) => void)
     const mySupports: { [string]: Support } = selectSupportsByOutpoint(state);
 
     // A user could be trying to abandon a support or one of their claims
-    const claimToAbandon = myClaims.find((claim) => claim.txid === txid && claim.nout === nout);
+    const claimIsMine = selectClaimIsMine(state, claim);
+    const claimToAbandon = claimIsMine ? claim : myClaims.find((claim) => claim.txid === txid && claim.nout === nout);
     const supportToAbandon = mySupports[outpoint];
 
     if (!claimToAbandon && !supportToAbandon) {

@@ -12,7 +12,7 @@ import { getRecommendationSearchOptions } from 'util/search';
 import { SEARCH_SERVER_API } from 'config';
 
 type Dispatch = (action: any) => any;
-type GetState = () => { search: SearchState };
+type GetState = () => { claims: any, search: SearchState };
 
 type SearchOptions = {
   size?: number,
@@ -31,102 +31,105 @@ export const setSearchApi = (endpoint: string) => {
   lighthouse.CONNECTION_STRING = endpoint.replace(/\/*$/, '/'); // exactly one slash at the end;
 };
 
-export const doSearch = (rawQuery: string, searchOptions: SearchOptions) => (
-  dispatch: Dispatch,
-  getState: GetState
-) => {
-  const query = rawQuery.replace(/^lbry:\/\//i, '').replace(/\//, ' ');
+export const doSearch =
+  (rawQuery: string, searchOptions: SearchOptions) => (dispatch: Dispatch, getState: GetState) => {
+    const query = rawQuery.replace(/^lbry:\/\//i, '').replace(/\//, ' ');
 
-  if (!query) {
-    dispatch({
-      type: ACTIONS.SEARCH_FAIL,
-    });
-    return;
-  }
-
-  const state = getState();
-
-  const queryWithOptions = getSearchQueryString(query, searchOptions);
-
-  const size = searchOptions.size;
-  const from = searchOptions.from;
-
-  // If we have already searched for something, we don't need to do anything
-  const urisForQuery = makeSelectSearchUrisForQuery(queryWithOptions)(state);
-  if (urisForQuery && !!urisForQuery.length) {
-    if (!size || !from || from + size < urisForQuery.length) {
-      return;
-    }
-  }
-
-  dispatch({
-    type: ACTIONS.SEARCH_START,
-  });
-
-  lighthouse
-    .search(queryWithOptions)
-    .then((data: { body: Array<{ name: string, claimId: string }>, poweredBy: string }) => {
-      const { body: result, poweredBy } = data;
-      const uris = [];
-      const actions = [];
-
-      result.forEach((item) => {
-        if (item) {
-          const { name, claimId } = item;
-          const urlObj: LbryUrlObj = {};
-
-          if (name.startsWith('@')) {
-            urlObj.channelName = name;
-            urlObj.channelClaimId = claimId;
-          } else {
-            urlObj.streamName = name;
-            urlObj.streamClaimId = claimId;
-          }
-
-          const url = buildURI(urlObj);
-          if (isURIValid(url)) {
-            uris.push(url);
-          }
-        }
-      });
-
-      actions.push(doResolveUris(uris));
-
-      actions.push({
-        type: ACTIONS.SEARCH_SUCCESS,
-        data: {
-          query: queryWithOptions,
-          from: from,
-          size: size,
-          uris,
-          recsys: poweredBy,
-        },
-      });
-      dispatch(batchActions(...actions));
-    })
-    .catch(() => {
+    if (!query) {
       dispatch({
         type: ACTIONS.SEARCH_FAIL,
       });
+      return;
+    }
+
+    const state = getState();
+
+    const queryWithOptions = getSearchQueryString(query, searchOptions);
+
+    const size = searchOptions.size;
+    const from = searchOptions.from;
+
+    // If we have already searched for something, we don't need to do anything
+    const urisForQuery = makeSelectSearchUrisForQuery(queryWithOptions)(state);
+    if (urisForQuery && !!urisForQuery.length) {
+      if (!size || !from || from + size < urisForQuery.length) {
+        return;
+      }
+    }
+
+    dispatch({
+      type: ACTIONS.SEARCH_START,
     });
-};
 
-export const doUpdateSearchOptions = (newOptions: SearchOptions, additionalOptions: SearchOptions) => (
-  dispatch: Dispatch,
-  getState: GetState
-) => {
-  const state = getState();
-  const searchValue = selectSearchValue(state);
+    lighthouse
+      .search(queryWithOptions)
+      .then((data: { body: Array<{ name: string, claimId: string }>, poweredBy: string }) => {
+        const { body: result, poweredBy } = data;
+        const uris = [];
+        const actions = [];
 
+        result.forEach((item) => {
+          if (item) {
+            const { name, claimId } = item;
+            const urlObj: LbryUrlObj = {};
+
+            if (name.startsWith('@')) {
+              urlObj.channelName = name;
+              urlObj.channelClaimId = claimId;
+            } else {
+              urlObj.streamName = name;
+              urlObj.streamClaimId = claimId;
+            }
+
+            const url = buildURI(urlObj);
+            if (isURIValid(url)) {
+              uris.push(url);
+            }
+          }
+        });
+
+        actions.push(doResolveUris(uris));
+
+        actions.push({
+          type: ACTIONS.SEARCH_SUCCESS,
+          data: {
+            query: queryWithOptions,
+            from: from,
+            size: size,
+            uris,
+            recsys: poweredBy,
+          },
+        });
+        dispatch(batchActions(...actions));
+      })
+      .catch(() => {
+        dispatch({
+          type: ACTIONS.SEARCH_FAIL,
+        });
+      });
+  };
+
+export const doUpdateSearchOptions =
+  (newOptions: SearchOptions, additionalOptions: SearchOptions) => (dispatch: Dispatch, getState: GetState) => {
+    const state = getState();
+    const searchValue = selectSearchValue(state);
+
+    dispatch({
+      type: ACTIONS.UPDATE_SEARCH_OPTIONS,
+      data: newOptions,
+    });
+
+    if (searchValue) {
+      // After updating, perform a search with the new options
+      dispatch(doSearch(searchValue, additionalOptions));
+    }
+  };
+
+export const doSetMentionSearchResults = (query: string, uris: Array<string>) => (dispatch: Dispatch) => {
   dispatch({
-    type: ACTIONS.UPDATE_SEARCH_OPTIONS,
-    data: newOptions,
+    type: ACTIONS.SET_MENTION_SEARCH_RESULTS,
+    data: { query, uris },
   });
-
-  if (searchValue) {
-    // After updating, perform a search with the new options
-    dispatch(doSearch(searchValue, additionalOptions));
-  }
 };
 
 export const doFetchRecommendedContent = (uri: string) => (dispatch: Dispatch, getState: GetState) => {

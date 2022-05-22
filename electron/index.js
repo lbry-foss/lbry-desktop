@@ -17,8 +17,12 @@ import startSandbox from './startSandbox';
 import installDevtools from './installDevtools';
 import fs from 'fs';
 import path from 'path';
+import { diskSpaceLinux, diskSpaceWindows, diskSpaceMac } from '../ui/util/diskspace';
+
 const { download } = require('electron-dl');
 const remote = require('@electron/remote/main');
+const os = require('os');
+
 remote.initialize();
 const filePath = path.join(process.resourcesPath, 'static', 'upgradeDisabled');
 let upgradeDisabled;
@@ -38,6 +42,19 @@ let autoUpdateDownloaded = false;
 // This is used to keep track of whether we are showing the special dialog
 // that we show on Windows after you decline an upgrade and close the app later.
 let showingAutoUpdateCloseAlert = false;
+
+// This is used to prevent downloading updates multiple times when
+// using the auto updater API.
+// As read in the documentation:
+// "Calling autoUpdater.checkForUpdates() twice will download the update two times."
+// https://www.electronjs.org/docs/latest/api/auto-updater#autoupdatercheckforupdates
+let keepCheckingForUpdates = true;
+
+// Auto updater doesn't support Linux installations (only trough AppImages)
+// this is why, for that case, we download a full executable (.deb package)
+// as a fallback support. This variable will be used to prevent
+// multiple downloads when auto updater isn't supported.
+let downloadUpgradeInProgress = false;
 
 // Keep a global reference, if you don't, they will be closed automatically when the JavaScript
 // object is garbage collected.
@@ -286,7 +303,35 @@ app.on('before-quit', () => {
   appState.isQuitting = true;
 });
 
+ipcMain.on('get-disk-space', async (event) => {
+  try {
+    const { data_dir } = await Lbry.settings_get();
+    let diskSpace;
+    switch (os.platform()) {
+      case 'linux':
+        diskSpace = await diskSpaceLinux(data_dir);
+        break;
+      case 'darwin':
+        diskSpace = await diskSpaceMac(data_dir);
+        break;
+      case 'win32':
+        diskSpace = await diskSpaceWindows(data_dir);
+        break;
+      default:
+        throw new Error('unknown platform');
+    }
+    rendererWindow.webContents.send('send-disk-space', { diskSpace });
+  } catch (e) {
+    rendererWindow.webContents.send('send-disk-space', { error: e.message || e });
+    console.log('Failed to start LbryFirst', e);
+  }
+});
+
 ipcMain.on('download-upgrade', async (event, params) => {
+  if (downloadUpgradeInProgress) {
+    return;
+  }
+
   const { url, options } = params;
   const dir = fs.mkdtempSync(app.getPath('temp') + path.sep);
   options.onProgress = function(p) {
@@ -294,9 +339,11 @@ ipcMain.on('download-upgrade', async (event, params) => {
   };
   options.directory = dir;
   options.onCompleted = function(c) {
+    downloadUpgradeInProgress = false;
     rendererWindow.webContents.send('download-update-complete', c);
   };
   const win = BrowserWindow.getFocusedWindow();
+  downloadUpgradeInProgress = true;
   await download(win, url, options).catch(e => console.log('e', e));
 });
 
@@ -314,17 +361,51 @@ ipcMain.on('upgrade', (event, installerPath) => {
   app.quit();
 });
 
-ipcMain.on('check-for-updates', () => {
+ipcMain.on('check-for-updates', (event, autoDownload) => {
+  // Prevent downloading the same update multiple times.
+  if (!keepCheckingForUpdates) {
+    return;
+  }
+
+  keepCheckingForUpdates = false;
+  autoUpdater.autoDownload = autoDownload;
   autoUpdater.checkForUpdates();
 });
 
 autoUpdater.on('update-downloaded', () => {
   autoUpdateDownloaded = true;
+
+  // If this download was trigger by
+  // autoUpdateAccepted it means, the user
+  // wants to install the new update but
+  // needed to downloaded the files first.
+  if (appState.autoUpdateAccepted) {
+    autoUpdater.quitAndInstall();
+  }
+});
+
+autoUpdater.on('update-not-available', () => {
+  keepCheckingForUpdates = true;
 });
 
 ipcMain.on('autoUpdateAccepted', () => {
   appState.autoUpdateAccepted = true;
-  autoUpdater.quitAndInstall();
+
+  // quitAndInstall can only be called if the
+  // update has been downloaded. Since the user
+  // can disable auto updates, we have to make
+  // sure it has been downloaded first.
+  if (autoUpdateDownloaded) {
+    autoUpdater.quitAndInstall();
+    return;
+  }
+
+  // If the update hasn't been downloaded,
+  // start downloading it. After it's done, the
+  // event 'update-downloaded' will be triggered,
+  // where we will be able to resume the
+  // update installation.
+  autoUpdater.downloadUpdate();
 });
 
 ipcMain.on('version-info-requested', () => {

@@ -26,20 +26,20 @@ export default function useKonamiListener() {
  * Licensed under the MIT License (http://opensource.org/licenses/MIT)
  * Tested in: Safari 4+, Google Chrome 4+, Firefox 3+, IE7+, Mobile Safari 2.2.1+ and Android
  */
-var Konami = function(callback) {
+var Konami = function (callback) {
   var konami = {
-    addEvent: function(obj, type, fn, ref_obj) {
+    addEvent: function (obj, type, fn, ref_obj) {
       if (obj.addEventListener) obj.addEventListener(type, fn, false);
       else if (obj.attachEvent) {
         // IE
         obj['e' + type + fn] = fn;
-        obj[type + fn] = function() {
+        obj[type + fn] = function () {
           obj['e' + type + fn](window.event, ref_obj);
         };
         obj.attachEvent('on' + type, obj[type + fn]);
       }
     },
-    removeEvent: function(obj, eventName, eventCallback) {
+    removeEvent: function (obj, eventName, eventCallback) {
       if (obj.removeEventListener) {
         obj.removeEventListener(eventName, eventCallback);
       } else if (obj.attachEvent) {
@@ -48,14 +48,14 @@ var Konami = function(callback) {
     },
     input: '',
     pattern: '38384040373937396665',
-    keydownHandler: function(e, ref_obj) {
+    keydownHandler: function (e, ref_obj) {
       if (ref_obj) {
         konami = ref_obj;
       } // IE
       konami.input += e ? e.keyCode : event.keyCode;
 
       if (konami.input.length > konami.pattern.length) {
-        konami.input = konami.input.substr(konami.input.length - konami.pattern.length);
+        konami.input = konami.input.slice(konami.input.length - konami.pattern.length);
       }
       if (konami.input === konami.pattern) {
         konami.code(konami._currentLink);
@@ -64,16 +64,16 @@ var Konami = function(callback) {
         return false;
       }
     },
-    load: function(link) {
+    load: function (link) {
       this._currentLink = link;
       this.addEvent(document, 'keydown', this.keydownHandler, this);
       this.iphone.load(link);
     },
-    unload: function() {
+    unload: function () {
       this.removeEvent(document, 'keydown', this.keydownHandler);
       this.iphone.unload();
     },
-    code: function(link) {
+    code: function (link) {
       window.location = link;
     },
     iphone: {
@@ -86,10 +86,10 @@ var Konami = function(callback) {
       orig_keys: '',
       keys: ['UP', 'UP', 'DOWN', 'DOWN', 'LEFT', 'RIGHT', 'LEFT', 'RIGHT', 'TAP', 'TAP'],
       input: [],
-      code: function(link) {
+      code: function (link) {
         konami.code(link);
       },
-      touchmoveHandler: function(e) {
+      touchmoveHandler: function (e) {
         if (e.touches.length === 1 && konami.iphone.capture === true) {
           var touch = e.touches[0];
           konami.iphone.stop_x = touch.pageX;
@@ -99,7 +99,7 @@ var Konami = function(callback) {
           konami.iphone.check_direction();
         }
       },
-      touchendHandler: function() {
+      touchendHandler: function () {
         konami.iphone.input.push(konami.iphone.check_direction());
 
         if (konami.iphone.input.length > konami.iphone.keys.length) konami.iphone.input.shift();
@@ -116,24 +116,24 @@ var Konami = function(callback) {
           }
         }
       },
-      touchstartHandler: function(e) {
+      touchstartHandler: function (e) {
         konami.iphone.start_x = e.changedTouches[0].pageX;
         konami.iphone.start_y = e.changedTouches[0].pageY;
         konami.iphone.tap = true;
         konami.iphone.capture = true;
       },
-      load: function(link) {
+      load: function (link) {
         this.orig_keys = this.keys;
         konami.addEvent(document, 'touchmove', this.touchmoveHandler);
         konami.addEvent(document, 'touchend', this.touchendHandler, false);
         konami.addEvent(document, 'touchstart', this.touchstartHandler);
       },
-      unload: function() {
+      unload: function () {
         konami.removeEvent(document, 'touchmove', this.touchmoveHandler);
         konami.removeEvent(document, 'touchend', this.touchendHandler);
         konami.removeEvent(document, 'touchstart', this.touchstartHandler);
       },
-      check_direction: function() {
+      check_direction: function () {
         var x_magnitude = Math.abs(this.start_x - this.stop_x);
         var y_magnitude = Math.abs(this.start_y - this.stop_y);
         var x = this.start_x - this.stop_x < 0 ? 'RIGHT' : 'LEFT';
